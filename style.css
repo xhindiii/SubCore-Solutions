@@ -1,0 +1,126 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #0f2c35, #0c1f26);
+  color: #f2f2f2;
+  line-height: 1.6;
+}
+
+header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: rgba(10, 25, 32, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 20px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+}
+
+nav a {
+  color: #f2f2f2;
+  text-decoration: none;
+  margin-left: 30px;
+  font-weight: 500;
+  transition: 0.3s ease;
+}
+
+nav a:hover {
+  color: #8aa3ad;
+}
+
+.hero {
+  height: 100vh;
+  background: 
+    linear-gradient(rgba(10,25,32,0.85), rgba(10,25,32,0.85)),
+    url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31') center/cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  max-width: 900px;
+}
+
+.hero p {
+  margin-top: 20px;
+  color: #8aa3ad;
+  font-size: 1.2rem;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 30px;
+  padding: 14px 30px;
+  border: 1px solid #8aa3ad;
+  color: #f2f2f2;
+  text-decoration: none;
+  border-radius: 40px;
+  transition: 0.3s;
+}
+
+.button:hover {
+  background: #8aa3ad;
+  color: #0c1f26;
+}
+
+.section {
+  padding: 120px 60px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.section h2 {
+  margin-bottom: 30px;
+  font-size: 2rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 30px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.card:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-5px);
+}
+
+footer {
+  text-align: center;
+  padding: 40px;
+  background: rgba(0,0,0,0.4);
+  color: #8aa3ad;
+}
+
+@media(max-width: 768px){
+  header {
+    padding: 20px;
+  }
+  .hero h1 {
+    font-size: 2rem;
+  }
+  .section {
+    padding: 80px 20px;
+  }
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact - SubCore Solutions</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+</head>
+<body>
+
+<header>
+  <img src="logo.svg" height="40">
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
+<section class="hero" style="
+background:
+linear-gradient(rgba(10,25,32,0.85), rgba(10,25,32,0.85)),
+url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b') center/cover no-repeat;">
+  <div>
+    <h1>Contact Us</h1>
+    <p>We are ready to support your IT infrastructure</p>
+  </div>
+</section>
+
+<section class="section">
+
+  <div class="services-grid">
+
+    <!-- Contact Info Card -->
+    <div class="card">
+      <h3>Contact Information</h3>
+      <p><strong>Email:</strong><br> info@subcoresolutions.com</p>
+      <p><strong>Phone:</strong><br> +355 69 453 9696</p>
+      <p>Hybrid Support: Remote & On-Site</p>
+    </div>
+
+    <!-- Contact Form Card -->
+    <div class="card">
+      <h3>Send Us a Message</h3>
+      <form onsubmit="sendEmail(event)">
+        <input type="text" id="name" placeholder="Your Name" required>
+        <textarea id="message" rows="5" placeholder="Your Message" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+
+  </div>
+
+</section>
+
+<footer>
+  © 2026 SubCore Solutions |
+  info@subcoresolutions.com |
+  +355 69 453 9696
+</footer>
+
+</body>
+</html>

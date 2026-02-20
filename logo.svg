@@ -1,0 +1,33 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f2c35"/>
+      <stop offset="100%" stop-color="#0c1f26"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="600" fill="url(#bgGradient)" />
+
+  <!-- Main Text -->
+  <text x="50%" y="48%" 
+        text-anchor="middle" 
+        fill="#f2f2f2" 
+        font-size="150" 
+        font-family="Segoe UI, Arial, sans-serif"
+        font-weight="600">
+        SubCore
+  </text>
+
+  <!-- Subtitle -->
+  <text x="50%" y="63%" 
+        text-anchor="middle" 
+        fill="#8aa3ad" 
+        font-size="50" 
+        letter-spacing="12"
+        font-family="Segoe UI, Arial, sans-serif">
+        SOLUTIONS
+  </text>
+
+</svg>
