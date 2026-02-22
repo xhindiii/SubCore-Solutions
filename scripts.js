@@ -7,5 +7,5 @@ function sendEmail(event) {
   const subject = encodeURIComponent("Contact from Website - " + name);
   const body = encodeURIComponent(message);
 
-  window.location.href = `mailto:info@subcoresolutions.com?subject=${subject}&body=${body}`;
+  window.location.href = `mailto:info@subcoresolutions.online?subject=${subject}&body=${body}`;
 }
