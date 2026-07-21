@@ -1,0 +1,100 @@
+{
+  "categories": [
+    { "id": "hardware", "name": { "en": "Hardware", "sq": "Hardware" }, "slug": "hardware" },
+    { "id": "networking", "name": { "en": "Networking", "sq": "Rrjete" }, "slug": "networking" },
+    { "id": "software", "name": { "en": "Software", "sq": "Software" }, "slug": "software" },
+    { "id": "accessories", "name": { "en": "Accessories", "sq": "Aksesorë" }, "slug": "accessories" }
+  ],
+  "products": [
+    {
+      "id": "cat6-cable-10m",
+      "name": { "en": "Cat6 Ethernet Cable 10m", "sq": "Kabllo Cat6 Ethernet 10m" },
+      "description": {
+        "en": "High-quality Cat6 patch cable for reliable gigabit networking. Ideal for office setups and home networks.",
+        "sq": "Kabllo Cat6 me cilësi të lartë për rrjet gigabit të besueshëm. Ideale për zyra dhe rrjete shtëpiake."
+      },
+      "price": 12,
+      "currency": "USD",
+      "category": "networking",
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop",
+      "stock": 25,
+      "available": true,
+      "featured": true
+    },
+    {
+      "id": "wireless-mouse",
+      "name": { "en": "Wireless Optical Mouse", "sq": "Mi Wireless Optik" },
+      "description": {
+        "en": "Ergonomic wireless mouse with 2.4GHz receiver. Plug-and-play, long battery life, smooth tracking.",
+        "sq": "Mi wireless ergonomik me receptor 2.4GHz. Plug-and-play, jetëgjatësi e gjatë baterie, ndjekje e qetë."
+      },
+      "price": 18,
+      "currency": "USD",
+      "category": "accessories",
+      "image": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=600&h=600&fit=crop",
+      "stock": 40,
+      "available": true,
+      "featured": true
+    },
+    {
+      "id": "usb-hub-4port",
+      "name": { "en": "USB 3.0 Hub 4-Port", "sq": "USB 3.0 Hub 4-Port" },
+      "description": {
+        "en": "Compact 4-port USB 3.0 hub for laptops and desktops. Expand connectivity without sacrificing speed.",
+        "sq": "Hub kompakt USB 3.0 me 4 porta për laptop dhe desktop. Zgjeroni lidhjet pa humbur shpejtësinë."
+      },
+      "price": 22,
+      "currency": "USD",
+      "category": "accessories",
+      "image": "https://images.unsplash.com/photo-1625948515291-69613efd202f?w=600&h=600&fit=crop",
+      "stock": 15,
+      "available": true,
+      "featured": false
+    },
+    {
+      "id": "ssd-256gb",
+      "name": { "en": "SSD 256GB SATA", "sq": "SSD 256GB SATA" },
+      "description": {
+        "en": "256GB solid-state drive for faster boot times and improved system performance. Includes installation guidance.",
+        "sq": "Disk SSD 256GB për nisje më të shpejtë dhe performancë më të mirë. Përfshin udhëzime instalimi."
+      },
+      "price": 45,
+      "currency": "USD",
+      "category": "hardware",
+      "image": "https://images.unsplash.com/photo-1597872200963-2bca7052a168?w=600&h=600&fit=crop",
+      "stock": 8,
+      "available": true,
+      "featured": true
+    },
+    {
+      "id": "wifi-extender",
+      "name": { "en": "Wi-Fi Range Extender", "sq": "Përforcues Wi-Fi" },
+      "description": {
+        "en": "Dual-band Wi-Fi extender to eliminate dead zones. Easy setup, compatible with most routers.",
+        "sq": "Përforcues Wi-Fi dual-band për të eliminuar zonat pa sinjal. Konfigurim i lehtë, kompatibil me shumicën e routerëve."
+      },
+      "price": 35,
+      "currency": "USD",
+      "category": "networking",
+      "image": "https://images.unsplash.com/photo-1606902969161-bb508e2f5219?w=600&h=600&fit=crop",
+      "stock": 12,
+      "available": true,
+      "featured": false
+    },
+    {
+      "id": "antivirus-license",
+      "name": { "en": "Antivirus License (1 Year)", "sq": "Licencë Antivirus (1 Vit)" },
+      "description": {
+        "en": "One-year antivirus license with real-time protection, firewall, and remote installation support from our team.",
+        "sq": "Licencë antivirus një-vjeçare me mbrojtje në kohë reale, firewall dhe mbështetje instalimi nga ekipi ynë."
+      },
+      "price": 25,
+      "currency": "USD",
+      "category": "software",
+      "image": "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=600&fit=crop",
+      "stock": 100,
+      "available": true,
+      "featured": false
+    }
+  ]
+}
