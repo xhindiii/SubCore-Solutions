@@ -206,19 +206,25 @@ const SupabaseClient = {
   // Admin Authentication
   async adminLogin(email, password) {
     try {
-      const users = await this._fetch(`/admin_users?email=eq.${encodeURIComponent(email)}&select=*`);
-      if (users.length === 0) return { success: false, error: "User not found" };
-      const user = users[0];
-      if (user.password_hash === password) {
+      // Use the verify_admin_password function for secure password verification
+      const result = await this._fetch(`/rpc/verify_admin_password`, {
+        method: "POST",
+        body: JSON.stringify({ email_param: email, password_param: password })
+      });
+      
+      if (result && result.length > 0) {
+        const user = result[0];
+        // Update last login timestamp
         await this._fetch(`/admin_users?id=eq.${user.id}`, {
           method: "PATCH",
           body: JSON.stringify({ last_login: new Date().toISOString() })
         });
-        return { success: true, user: { id: user.id, email: user.email, full_name: user.full_name, role: user.role } };
+        return { success: true, user: user };
       }
-      return { success: false, error: "Invalid password" };
+      return { success: false, error: "Invalid credentials" };
     } catch (error) {
-      return { success: false, error: error.message };
+      console.error("Login error:", error);
+      return { success: false, error: "Authentication failed" };
     }
   }
 };

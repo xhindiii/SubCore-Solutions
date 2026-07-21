@@ -35,11 +35,27 @@ const ShopStore = {
     }
   },
 
-  save(data) {
+  async save(data) {
     localStorage.setItem(SHOP_STORAGE_KEY, JSON.stringify(data));
     if (typeof SupabaseClient !== "undefined") {
-      data.categories?.forEach((c) => SupabaseClient.upsertCategory(c).catch(() => {}));
-      data.products?.forEach((p) => SupabaseClient.upsertProduct(p).catch(() => {}));
+      try {
+        const available = await SupabaseClient.isAvailable();
+        if (available) {
+          const categoryPromises = data.categories?.map((c) => 
+            SupabaseClient.upsertCategory(c).catch(err => {
+              console.error("Failed to save category:", c.id, err);
+            })
+          ) || [];
+          const productPromises = data.products?.map((p) => 
+            SupabaseClient.upsertProduct(p).catch(err => {
+              console.error("Failed to save product:", p.id, err);
+            })
+          ) || [];
+          await Promise.all([...categoryPromises, ...productPromises]);
+        }
+      } catch (err) {
+        console.error("Supabase sync failed:", err);
+      }
     }
   },
 

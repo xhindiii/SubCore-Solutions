@@ -1,6 +1,9 @@
 -- SubCore Solutions Complete Schema
 -- Run this in your Supabase SQL Editor
 
+-- Enable pgcrypto extension for password hashing
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Categories Table
 CREATE TABLE IF NOT EXISTS categories (
   id TEXT PRIMARY KEY,
@@ -38,7 +41,7 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Admin Users Table
+-- Admin Users Table with proper password hashing
 CREATE TABLE IF NOT EXISTS admin_users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -88,17 +91,36 @@ CREATE POLICY "Public read website settings" ON website_settings FOR SELECT USIN
 CREATE POLICY "Public insert orders" ON orders FOR INSERT WITH CHECK (true);
 
 -- Admin Policies (for management)
+-- NOTE: In production, these should be restricted to authenticated admin users
 CREATE POLICY "Admin upsert categories" ON categories FOR ALL USING (true);
 CREATE POLICY "Admin upsert products" ON products FOR ALL USING (true);
 CREATE POLICY "Admin manage orders" ON orders FOR ALL USING (true);
 CREATE POLICY "Admin manage services" ON services FOR ALL USING (true);
 CREATE POLICY "Admin manage settings" ON website_settings FOR ALL USING (true);
 
--- Insert default admin user (password: subcore2026)
--- Hash is a simple hash - in production use proper bcrypt
+-- Function to verify password using pgcrypto
+CREATE OR REPLACE FUNCTION verify_admin_password(email_param TEXT, password_param TEXT)
+RETURNS TABLE(id UUID, email TEXT, full_name TEXT, role TEXT) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT id, email, full_name, role
+  FROM admin_users
+  WHERE email = email_param
+    AND password_hash = crypt(password_param, password_hash);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Insert default admin user (password: Localadmin!)
+-- Using crypt() with gen_salt() for proper password hashing
 INSERT INTO admin_users (email, password_hash, full_name, role)
-VALUES ('admin@subcoresolutions.online', 'subcore2026', 'Admin User', 'admin')
-ON CONFLICT (email) DO NOTHING;
+VALUES (
+  'info.subcoresolutions@gmail.com',
+  crypt('Localadmin!', gen_salt('bf')),
+  'Admin User',
+  'admin'
+)
+ON CONFLICT (email) DO UPDATE SET
+  password_hash = crypt('Localadmin!', gen_salt('bf'));
 
 -- Insert default website settings
 INSERT INTO website_settings (key, value) VALUES

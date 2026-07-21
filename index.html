@@ -17,6 +17,8 @@
 </head>
 <body>
 
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
 <header>
   <a href="index.html" class="logo-link"><img src="logo-compact.svg" class="logo" alt="SubCore Solutions" width="140" height="28"></a>
   <nav>
@@ -45,13 +47,30 @@
 </header>
 
 <section class="hero">
-  <div class="fade-in">
-    <span class="hero-badge" data-i18n="hero.badge">IT Services · Albania</span>
-    <h1 data-i18n="hero.title">Advanced IT Infrastructure & Innovation</h1>
-    <p data-i18n="hero.subtitle">Professional IT solutions for businesses and individuals.</p>
+  <div class="hero-background" loading="lazy"></div>
+  <div class="hero-content fade-in" id="main-content">
+    <div class="hero-badge-wrapper">
+      <span class="hero-badge" data-i18n="hero.badge">IT Services · Albania</span>
+    </div>
+    <h1 class="hero-title" data-i18n="hero.title">Advanced IT Infrastructure & Innovation</h1>
+    <p class="hero-subtitle" data-i18n="hero.subtitle">Professional IT solutions for businesses and individuals.</p>
     <div class="hero-buttons">
-      <a href="contact.html" class="button" data-i18n="hero.cta">Contact Us</a>
-      <a href="#pricing" class="button button-outline" data-i18n="hero.cta2">View Pricing</a>
+      <a href="contact.html" class="button button-primary" data-i18n="hero.cta">Contact Us</a>
+      <a href="#pricing" class="button button-outline button-glow" data-i18n="hero.cta2">View Pricing</a>
+    </div>
+    <div class="hero-trust-indicators">
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span data-i18n="hero.trust1">24/7 Support</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span data-i18n="hero.trust2">Enterprise Security</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span data-i18n="hero.trust3">Hybrid Model</span>
+      </div>
     </div>
   </div>
 </section>

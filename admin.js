@@ -1,6 +1,6 @@
 const ADMIN_SESSION_KEY = "subcore_admin_session";
-const ADMIN_PASSWORD_KEY = "subcore_admin_pw";
-const DEFAULT_ADMIN_PASSWORD = "subcore2026";
+const SESSION_EXPIRY_KEY = "subcore_admin_session_expiry";
+const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
 
 let adminData = null;
 let adminServices = null;
@@ -8,53 +8,210 @@ let adminOrders = null;
 let adminSettings = null;
 let currentUser = null;
 
-// Authentication
-function hashPassword(pw) {
-  let hash = 0;
-  for (let i = 0; i < pw.length; i++) {
-    hash = (hash << 5) - hash + pw.charCodeAt(i);
-    hash |= 0;
+// Input validation and sanitization
+const Validator = {
+  sanitizeString(input) {
+    if (typeof input !== 'string') return '';
+    return input
+      .trim()
+      .replace(/[<>]/g, '') // Remove < and > to prevent XSS
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+=/gi, '');
+  },
+  
+  sanitizeEmail(input) {
+    const email = this.sanitizeString(input);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) ? email : '';
+  },
+  
+  sanitizeNumber(input, min = 0, max = Infinity) {
+    const num = parseFloat(input);
+    return isNaN(num) ? min : Math.max(min, Math.min(max, num));
+  },
+  
+  sanitizeUrl(input) {
+    const url = this.sanitizeString(input);
+    try {
+      const parsed = new URL(url);
+      return ['http:', 'https:'].includes(parsed.protocol) ? url : '';
+    } catch {
+      return '';
+    }
+  },
+  
+  sanitizeSlug(input) {
+    return this.sanitizeString(input)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
   }
-  return String(hash);
-}
+};
 
+// Authentication
 function isAdminLoggedIn() {
   const session = sessionStorage.getItem(ADMIN_SESSION_KEY);
-  return session ? JSON.parse(session) : null;
+  const expiry = sessionStorage.getItem(SESSION_EXPIRY_KEY);
+  
+  if (!session || !expiry) return null;
+  
+  // Check session expiration
+  if (Date.now() > parseInt(expiry)) {
+    adminLogout();
+    return null;
+  }
+  
+  try {
+    return JSON.parse(session);
+  } catch {
+    return null;
+  }
 }
 
 async function adminLogin(email, password) {
+  if (typeof SupabaseClient === "undefined") {
+    showError("Database connection not available");
+    return false;
+  }
+
   try {
-    if (typeof SupabaseClient !== "undefined") {
-      const result = await SupabaseClient.adminLogin(email, password);
-      if (result.success) {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(result.user));
-        currentUser = result.user;
-        return true;
-      }
-      return false;
-    }
-    // Fallback to local auth
-    const stored = localStorage.getItem(ADMIN_PASSWORD_KEY) || hashPassword(DEFAULT_ADMIN_PASSWORD);
-    if (hashPassword(password) === stored) {
-      sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ email, full_name: "Admin" }));
-      currentUser = { email, full_name: "Admin" };
+    const result = await SupabaseClient.adminLogin(email, password);
+    if (result.success) {
+      const expiry = Date.now() + SESSION_DURATION;
+      sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(result.user));
+      sessionStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
+      currentUser = result.user;
       return true;
     }
+    showError(result.error || "Invalid credentials");
     return false;
   } catch (error) {
     console.error("Login error:", error);
+    showError("Login failed. Please try again.");
     return false;
   }
 }
 
 function adminLogout() {
   sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  sessionStorage.removeItem(SESSION_EXPIRY_KEY);
   currentUser = null;
 }
 
-function changeAdminPassword(newPassword) {
-  localStorage.setItem(ADMIN_PASSWORD_KEY, hashPassword(newPassword));
+function requireAuth() {
+  if (!isAdminLoggedIn()) {
+    adminLogout();
+    window.location.reload();
+    return false;
+  }
+  return true;
+}
+
+// Supabase helper to reduce duplication
+async function safeSupabaseCall(fn, successMsg, errorMsg) {
+  if (typeof SupabaseClient === "undefined") {
+    showError("Database connection not available");
+    return false;
+  }
+  try {
+    await fn();
+    if (successMsg) showSuccess(successMsg);
+    return true;
+  } catch (error) {
+    console.error("Supabase error:", error);
+    if (errorMsg) showError(errorMsg);
+    return false;
+  }
+}
+
+// Toast Notification System
+const Toast = {
+  container: null,
+  
+  init() {
+    if (!this.container) {
+      this.container = document.createElement('div');
+      this.container.className = 'toast-container';
+      document.body.appendChild(this.container);
+    }
+  },
+  
+  show(type, title, message, duration = 5000) {
+    this.init();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icons = {
+      success: '✓',
+      error: '✕',
+      info: 'ℹ'
+    };
+    
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type] || icons.info}</div>
+      <div class="toast-content">
+        <div class="toast-title">${title}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button type="button" class="toast-close" aria-label="Close notification">×</button>
+    `;
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => this.dismiss(toast));
+    
+    this.container.appendChild(toast);
+    
+    if (duration > 0) {
+      setTimeout(() => this.dismiss(toast), duration);
+    }
+    
+    return toast;
+  },
+  
+  success(title, message, duration) {
+    return this.show('success', title, message, duration);
+  },
+  
+  error(title, message, duration) {
+    return this.show('error', title, message, duration);
+  },
+  
+  info(title, message, duration) {
+    return this.show('info', title, message, duration);
+  },
+  
+  dismiss(toast) {
+    if (!toast || !toast.parentNode) return;
+    toast.classList.add('removing');
+    toast.addEventListener('animationend', () => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    });
+  }
+};
+
+// Error handling
+function showError(message) {
+  const errorEl = document.getElementById("admin-login-error");
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+  }
+  Toast.error('Error', message);
+}
+
+function showSuccess(message) {
+  Toast.success('Success', message);
+}
+
+function clearError() {
+  const errorEl = document.getElementById("admin-login-error");
+  if (errorEl) {
+    errorEl.hidden = true;
+  }
 }
 
 // Navigation
@@ -71,32 +228,48 @@ function showSection(sectionName) {
 // Initialize
 async function initAdmin() {
   const loginScreen = document.getElementById("admin-login");
-  const dashboard = document.getElementById("admin-dashboard");
+  const dashboardContainer = document.getElementById("admin-dashboard-container");
+  const dashboardTemplate = document.getElementById("admin-dashboard-template");
   const user = isAdminLoggedIn();
 
   if (user) {
+    // Inject dashboard from template
     currentUser = user;
     loginScreen.hidden = true;
-    dashboard.hidden = false;
+    const dashboardClone = dashboardTemplate.content.cloneNode(true);
+    dashboardContainer.appendChild(dashboardClone);
     document.getElementById("admin-user-name").textContent = user.full_name || "Admin";
     await loadAdminDashboard();
+    bindDashboardEvents();
   } else {
+    // Show only login screen
     document.getElementById("admin-login-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("admin-email").value.trim();
-      const password = document.getElementById("admin-password").value;
+      clearError();
+      const email = Validator.sanitizeEmail(document.getElementById("admin-email").value);
+      const password = Validator.sanitizeString(document.getElementById("admin-password").value);
+      
+      if (!email || !password) {
+        showError("Please enter both email and password");
+        return;
+      }
       
       if (await adminLogin(email, password)) {
+        // Inject dashboard after successful login
         loginScreen.hidden = true;
-        dashboard.hidden = false;
+        const dashboardClone = dashboardTemplate.content.cloneNode(true);
+        dashboardContainer.appendChild(dashboardClone);
         document.getElementById("admin-user-name").textContent = currentUser?.full_name || "Admin";
         await loadAdminDashboard();
-      } else {
-        document.getElementById("admin-login-error").hidden = false;
+        bindDashboardEvents();
       }
     });
   }
+}
 
+// Bind dashboard events after injection
+function bindDashboardEvents() {
+  // Logout
   document.getElementById("admin-logout")?.addEventListener("click", () => {
     adminLogout();
     window.location.reload();
@@ -119,6 +292,9 @@ async function initAdmin() {
       });
     });
   });
+
+  // Bind all admin forms
+  bindAdminForms();
 }
 
 async function loadAdminDashboard() {
@@ -296,44 +472,63 @@ function editService(id) {
 
 async function saveService(e) {
   e.preventDefault();
+  if (!requireAuth()) return;
+  
   const editId = document.getElementById("service-id-edit").value;
-  const id = document.getElementById("service-id").value.trim().toLowerCase().replace(/\s+/g, "-");
+  const id = Validator.sanitizeSlug(document.getElementById("service-id").value);
+
+  if (!id) {
+    showError("Service ID is required");
+    return;
+  }
 
   const service = {
     id,
     name: {
-      en: document.getElementById("service-name-en").value.trim(),
-      sq: document.getElementById("service-name-sq").value.trim()
+      en: Validator.sanitizeString(document.getElementById("service-name-en").value),
+      sq: Validator.sanitizeString(document.getElementById("service-name-sq").value)
     },
     description: {
-      en: document.getElementById("service-desc-en").value.trim(),
-      sq: document.getElementById("service-desc-sq").value.trim()
+      en: Validator.sanitizeString(document.getElementById("service-desc-en").value),
+      sq: Validator.sanitizeString(document.getElementById("service-desc-sq").value)
     },
-    price: parseFloat(document.getElementById("service-price").value) || 0,
+    price: Validator.sanitizeNumber(document.getElementById("service-price").value, 0),
     currency: "USD",
-    icon: document.getElementById("service-icon").value.trim(),
-    display_order: parseInt(document.getElementById("service-display-order").value, 10) || 0,
+    icon: Validator.sanitizeString(document.getElementById("service-icon").value),
+    display_order: Validator.sanitizeNumber(document.getElementById("service-display-order").value, 0),
     available: document.getElementById("service-available").checked,
     featured: document.getElementById("service-featured").checked
   };
 
-  if (typeof SupabaseClient !== "undefined") {
-    await SupabaseClient.upsertService(service);
-    await loadServices();
-    renderAdminServices();
-  }
+  const success = await safeSupabaseCall(
+    async () => {
+      await SupabaseClient.upsertService(service);
+      await loadServices();
+      renderAdminServices();
+    },
+    "Service saved successfully",
+    "Failed to save service to database"
+  );
 
-  resetServiceForm();
-  document.getElementById("service-id").readOnly = false;
+  if (success) {
+    resetServiceForm();
+    document.getElementById("service-id").readOnly = false;
+  }
 }
 
 async function deleteService(id) {
+  if (!requireAuth()) return;
   if (!confirm("Delete this service?")) return;
-  if (typeof SupabaseClient !== "undefined") {
-    await SupabaseClient.deleteService(id);
-    await loadServices();
-    renderAdminServices();
-  }
+  
+  await safeSupabaseCall(
+    async () => {
+      await SupabaseClient.deleteService(id);
+      await loadServices();
+      renderAdminServices();
+    },
+    "Service deleted successfully",
+    "Failed to delete service from database"
+  );
 }
 
 // Orders
@@ -365,12 +560,18 @@ function renderAdminOrders() {
 }
 
 async function updateOrderStatus(id, status) {
-  if (typeof SupabaseClient !== "undefined") {
-    await SupabaseClient.updateOrderStatus(id, status);
-    await loadOrders();
-    renderAdminOrders();
-    updateDashboardStats();
-  }
+  if (!requireAuth()) return;
+  
+  await safeSupabaseCall(
+    async () => {
+      await SupabaseClient.updateOrderStatus(id, status);
+      await loadOrders();
+      renderAdminOrders();
+      updateDashboardStats();
+    },
+    "Order status updated successfully",
+    "Failed to update order status"
+  );
 }
 
 function viewOrderDetails(id) {
@@ -442,36 +643,46 @@ function renderContentForms() {
 
 async function saveCompanyInfo(e) {
   e.preventDefault();
+  if (!requireAuth()) return;
+  
   const companyInfo = {
-    name: document.getElementById("company-name").value.trim(),
-    tagline: document.getElementById("company-tagline").value.trim(),
-    email: document.getElementById("company-email").value.trim(),
-    secondary_email: document.getElementById("company-secondary-email").value.trim(),
-    phone: document.getElementById("company-phone").value.trim(),
-    whatsapp: document.getElementById("company-whatsapp").value.trim()
+    name: Validator.sanitizeString(document.getElementById("company-name").value),
+    tagline: Validator.sanitizeString(document.getElementById("company-tagline").value),
+    email: Validator.sanitizeEmail(document.getElementById("company-email").value),
+    secondary_email: Validator.sanitizeEmail(document.getElementById("company-secondary-email").value),
+    phone: Validator.sanitizeString(document.getElementById("company-phone").value),
+    whatsapp: Validator.sanitizeString(document.getElementById("company-whatsapp").value)
   };
 
-  if (typeof SupabaseClient !== "undefined") {
-    await SupabaseClient.upsertSetting("company_info", companyInfo);
-    await loadSettings();
-    alert("Company information saved successfully!");
-  }
+  await safeSupabaseCall(
+    async () => {
+      await SupabaseClient.upsertSetting("company_info", companyInfo);
+      await loadSettings();
+    },
+    "Company information saved successfully",
+    "Failed to save company information"
+  );
 }
 
 async function saveHeroContent(e) {
   e.preventDefault();
+  if (!requireAuth()) return;
+  
   const heroContent = {
-    title_en: document.getElementById("hero-title-en").value.trim(),
-    title_sq: document.getElementById("hero-title-sq").value.trim(),
-    subtitle_en: document.getElementById("hero-subtitle-en").value.trim(),
-    subtitle_sq: document.getElementById("hero-subtitle-sq").value.trim()
+    title_en: Validator.sanitizeString(document.getElementById("hero-title-en").value),
+    title_sq: Validator.sanitizeString(document.getElementById("hero-title-sq").value),
+    subtitle_en: Validator.sanitizeString(document.getElementById("hero-subtitle-en").value),
+    subtitle_sq: Validator.sanitizeString(document.getElementById("hero-subtitle-sq").value)
   };
 
-  if (typeof SupabaseClient !== "undefined") {
-    await SupabaseClient.upsertSetting("homepage_hero", heroContent);
-    await loadSettings();
-    alert("Hero content saved successfully!");
-  }
+  await safeSupabaseCall(
+    async () => {
+      await SupabaseClient.upsertSetting("homepage_hero", heroContent);
+      await loadSettings();
+    },
+    "Hero content saved successfully",
+    "Failed to save hero content"
+  );
 }
 
 // Forms
@@ -485,14 +696,19 @@ function bindAdminForms() {
     document.getElementById("import-file").click();
   });
   document.getElementById("import-file")?.addEventListener("change", importData);
-  document.getElementById("change-password-form")?.addEventListener("submit", (e) => {
+  document.getElementById("change-password-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (!requireAuth()) return;
+    
     const pw = document.getElementById("new-password").value;
-    if (pw.length >= 6) {
-      changeAdminPassword(pw);
-      alert("Password updated successfully.");
-      document.getElementById("new-password").value = "";
+    if (pw.length < 6) {
+      showError("Password must be at least 6 characters");
+      return;
     }
+    
+    // Password change should be done via backend - for now, show message
+    showSuccess("Password update requires backend implementation. Contact administrator.");
+    document.getElementById("new-password").value = "";
   });
   document.getElementById("company-info-form")?.addEventListener("submit", saveCompanyInfo);
   document.getElementById("hero-content-form")?.addEventListener("submit", saveHeroContent);
@@ -502,7 +718,7 @@ function handleImageUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 500000) {
-    alert("Image must be under 500KB.");
+    Toast.error('Upload Error', 'Image must be under 500KB.');
     return;
   }
   const reader = new FileReader();
@@ -544,26 +760,33 @@ function editProduct(id) {
   document.getElementById("product-form").scrollIntoView({ behavior: "smooth" });
 }
 
-function saveProduct(e) {
+async function saveProduct(e) {
   e.preventDefault();
+  if (!requireAuth()) return;
+  
   const editId = document.getElementById("product-id-edit").value;
-  const id = document.getElementById("product-id").value.trim().toLowerCase().replace(/\s+/g, "-");
+  const id = Validator.sanitizeSlug(document.getElementById("product-id").value);
+
+  if (!id) {
+    showError("Product ID is required");
+    return;
+  }
 
   const product = {
     id,
     name: {
-      en: document.getElementById("product-name-en").value.trim(),
-      sq: document.getElementById("product-name-sq").value.trim()
+      en: Validator.sanitizeString(document.getElementById("product-name-en").value),
+      sq: Validator.sanitizeString(document.getElementById("product-name-sq").value)
     },
     description: {
-      en: document.getElementById("product-desc-en").value.trim(),
-      sq: document.getElementById("product-desc-sq").value.trim()
+      en: Validator.sanitizeString(document.getElementById("product-desc-en").value),
+      sq: Validator.sanitizeString(document.getElementById("product-desc-sq").value)
     },
-    price: parseFloat(document.getElementById("product-price").value) || 0,
+    price: Validator.sanitizeNumber(document.getElementById("product-price").value, 0),
     currency: "USD",
-    category: document.getElementById("product-category").value,
-    image: document.getElementById("product-image").value.trim(),
-    stock: parseInt(document.getElementById("product-stock").value, 10) || 0,
+    category: Validator.sanitizeString(document.getElementById("product-category").value),
+    image: Validator.sanitizeUrl(document.getElementById("product-image").value) || null,
+    stock: Validator.sanitizeNumber(document.getElementById("product-stock").value, 0),
     available: document.getElementById("product-available").checked,
     featured: document.getElementById("product-featured").checked
   };
@@ -573,68 +796,82 @@ function saveProduct(e) {
     if (idx >= 0) adminData.products[idx] = product;
   } else {
     if (adminData.products.some((p) => p.id === id)) {
-      alert("Product ID already exists.");
+      showError("Product ID already exists");
       return;
     }
     adminData.products.push(product);
   }
 
-  ShopStore.save(adminData);
-  if (typeof SupabaseClient !== "undefined") {
-    SupabaseClient.upsertProduct(product).catch(() => {});
-  }
+  await ShopStore.save(adminData);
+  showSuccess("Product saved successfully");
   resetProductForm();
   document.getElementById("product-id").readOnly = false;
   renderAdminProducts();
   updateDashboardStats();
 }
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
+  if (!requireAuth()) return;
   if (!confirm("Delete this product?")) return;
+  
   adminData.products = adminData.products.filter((p) => p.id !== id);
-  ShopStore.save(adminData);
-  if (typeof SupabaseClient !== "undefined") {
-    SupabaseClient.deleteProduct(id).catch(() => {});
-  }
+  await ShopStore.save(adminData);
+  
+  await safeSupabaseCall(
+    async () => await SupabaseClient.deleteProduct(id),
+    "Product deleted successfully",
+    "Failed to delete product from database"
+  );
+  
   renderAdminProducts();
   updateDashboardStats();
 }
 
-function saveCategory(e) {
+async function saveCategory(e) {
   e.preventDefault();
-  const id = document.getElementById("category-id").value.trim().toLowerCase().replace(/\s+/g, "-");
-  if (adminData.categories.some((c) => c.id === id)) {
-    alert("Category ID already exists.");
+  if (!requireAuth()) return;
+  
+  const id = Validator.sanitizeSlug(document.getElementById("category-id").value);
+  if (!id) {
+    showError("Category ID is required");
     return;
   }
+  
+  if (adminData.categories.some((c) => c.id === id)) {
+    showError("Category ID already exists");
+    return;
+  }
+  
   adminData.categories.push({
     id,
     slug: id,
     name: {
-      en: document.getElementById("category-name-en").value.trim(),
-      sq: document.getElementById("category-name-sq").value.trim()
+      en: Validator.sanitizeString(document.getElementById("category-name-en").value),
+      sq: Validator.sanitizeString(document.getElementById("category-name-sq").value)
     }
   });
-  ShopStore.save(adminData);
-  const newCat = adminData.categories[adminData.categories.length - 1];
-  if (typeof SupabaseClient !== "undefined" && newCat) {
-    SupabaseClient.upsertCategory(newCat).catch(() => {});
-  }
+  await ShopStore.save(adminData);
+  showSuccess("Category saved successfully");
   e.target.reset();
   renderAdminCategories();
 }
 
-function deleteCategory(id) {
+async function deleteCategory(id) {
+  if (!requireAuth()) return;
   if (adminData.products.some((p) => p.category === id)) {
-    alert("Cannot delete category with existing products.");
+    showError("Cannot delete category with existing products");
     return;
   }
   if (!confirm("Delete this category?")) return;
   adminData.categories = adminData.categories.filter((c) => c.id !== id);
-  ShopStore.save(adminData);
-  if (typeof SupabaseClient !== "undefined") {
-    SupabaseClient.deleteCategory(id).catch(() => {});
-  }
+  await ShopStore.save(adminData);
+  
+  await safeSupabaseCall(
+    async () => await SupabaseClient.deleteCategory(id),
+    "Category deleted successfully",
+    "Failed to delete category from database"
+  );
+  
   renderAdminCategories();
 }
 
@@ -657,9 +894,9 @@ function importData(e) {
       renderAdminProducts();
       renderAdminCategories();
       updateDashboardStats();
-      alert("Data imported successfully.");
+      Toast.success('Import Complete', 'Data imported successfully.');
     } catch {
-      alert("Invalid JSON file.");
+      Toast.error('Import Failed', 'Invalid JSON file.');
     }
   };
   reader.readAsText(file);

@@ -1,6 +1,8 @@
 let shopData = null;
 let activeCategory = "all";
 let searchQuery = "";
+let isLoading = false;
+let loadError = null;
 
 function isProductAvailable(product) {
   return product.available && product.stock > 0;
@@ -18,15 +20,77 @@ function filterProducts(products) {
   });
 }
 
+function showLoading() {
+  const grid = document.getElementById("product-grid");
+  const empty = document.getElementById("shop-empty");
+  const loading = document.getElementById("shop-loading");
+  
+  if (grid) grid.innerHTML = "";
+  if (empty) empty.hidden = true;
+  
+  if (!loading) {
+    const loadingEl = document.createElement("div");
+    loadingEl.id = "shop-loading";
+    loadingEl.className = "loading-state";
+    loadingEl.innerHTML = `
+      <div class="loading-spinner"></div>
+      <p data-i18n="shop.loading">Loading products...</p>
+    `;
+    document.querySelector(".section")?.appendChild(loadingEl);
+  } else {
+    loading.hidden = false;
+  }
+}
+
+function hideLoading() {
+  const loading = document.getElementById("shop-loading");
+  if (loading) loading.hidden = true;
+}
+
+function showError(message) {
+  const grid = document.getElementById("product-grid");
+  const empty = document.getElementById("shop-empty");
+  const error = document.getElementById("shop-error");
+  
+  if (grid) grid.innerHTML = "";
+  if (empty) empty.hidden = true;
+  
+  if (!error) {
+    const errorEl = document.createElement("div");
+    errorEl.id = "shop-error";
+    errorEl.className = "error-state";
+    errorEl.innerHTML = `
+      <h3 data-i18n="shop.errorTitle">Error Loading Products</h3>
+      <p>${message}</p>
+      <button type="button" class="button" onclick="initShopListing()">${tShop("shop.retry")}</button>
+    `;
+    document.querySelector(".section")?.appendChild(errorEl);
+  } else {
+    error.querySelector("p").textContent = message;
+    error.hidden = false;
+  }
+}
+
+function hideError() {
+  const error = document.getElementById("shop-error");
+  if (error) error.hidden = true;
+}
+
 function renderProductCard(product, lang) {
   const name = ShopStore.getLocalized(product, lang, "name");
   const price = ShopStore.formatPrice(product.price, product.currency);
   const available = isProductAvailable(product);
+  const fallbackImage = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect fill="%231a1a1a" width="300" height="300"/><text x="50%" y="50%" fill="%23666" text-anchor="middle" dy=".3em" font-size="20">No Image</text></svg>';
 
   return `<article class="product-card fade-in visible">
     <div class="product-card-image">
       <a href="product.html?id=${encodeURIComponent(product.id)}">
-        <img src="${product.image}" alt="${name}" loading="lazy" width="300" height="300">
+        <img src="${product.image}" 
+             alt="${name}" 
+             loading="lazy" 
+             width="300" 
+             height="300"
+             onerror="this.src='${fallbackImage}'">
       </a>
     </div>
     <div class="product-card-body">
@@ -82,7 +146,18 @@ function renderShopListing() {
   }
 
   if (empty) empty.hidden = true;
-  grid.innerHTML = products.map((p) => renderProductCard(p, lang)).join("");
+  
+  // Use DocumentFragment for better performance
+  const fragment = document.createDocumentFragment();
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = products.map((p) => renderProductCard(p, lang)).join("");
+  
+  while (tempDiv.firstChild) {
+    fragment.appendChild(tempDiv.firstChild);
+  }
+  
+  grid.innerHTML = "";
+  grid.appendChild(fragment);
   bindAddToCartButtons();
 }
 
@@ -102,19 +177,29 @@ async function initShopListing() {
   const grid = document.getElementById("product-grid");
   if (!grid) return;
 
-  shopData = await ShopStore.load();
-  renderShopListing();
+  showLoading();
+  hideError();
+  
+  try {
+    shopData = await ShopStore.load();
+    hideLoading();
+    renderShopListing();
 
-  const searchInput = document.getElementById("shop-search");
-  if (searchInput) {
-    let debounce;
-    searchInput.addEventListener("input", (e) => {
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        searchQuery = e.target.value.trim();
-        renderShopListing();
-      }, 200);
-    });
+    const searchInput = document.getElementById("shop-search");
+    if (searchInput) {
+      let debounce;
+      searchInput.addEventListener("input", (e) => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+          searchQuery = e.target.value.trim();
+          renderShopListing();
+        }, 200);
+      });
+    }
+  } catch (error) {
+    hideLoading();
+    console.error("Failed to load shop data:", error);
+    showError("Unable to load products. Please check your connection and try again.");
   }
 }
 
@@ -136,8 +221,8 @@ async function initProductDetail() {
   }
 
   if (notFound) notFound.hidden = true;
-  const name = ShopStore.getLocalized(product, lang, "name");
-  const desc = ShopStore.getLocalized(product, lang, "description");
+  const name = ShopStore.getLocalized(product, lang, "name").replace(/[<>]/g, '');
+  const desc = ShopStore.getLocalized(product, lang, "description").replace(/[<>]/g, '');
   const price = ShopStore.formatPrice(product.price, product.currency);
   const available = isProductAvailable(product);
   const maxQty = Math.max(product.stock, 1);
@@ -209,7 +294,7 @@ async function initCart() {
   const rows = items.map(({ product, qty }) => {
     const subtotal = product.price * qty;
     total += subtotal;
-    const name = ShopStore.getLocalized(product, lang, "name");
+    const name = ShopStore.getLocalized(product, lang, "name").replace(/[<>]/g, '');
     return `<tr data-cart-id="${product.id}">
       <td>
         <div class="cart-product">
@@ -318,7 +403,7 @@ async function initCheckout() {
   const summaryItems = items.map(({ product, qty }) => {
     const subtotal = product.price * qty;
     total += subtotal;
-    const name = ShopStore.getLocalized(product, lang, "name");
+    const name = ShopStore.getLocalized(product, lang, "name").replace(/[<>]/g, '');
     return `<div class="cart-summary-row">
       <span>${name} × ${qty}</span>
       <span>${ShopStore.formatPrice(subtotal, product.currency)}</span>
