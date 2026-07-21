@@ -1,26 +1,25 @@
+// Requires the Supabase JS SDK to be loaded first:
+// <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+//
+// SECURITY NOTE: This anon/publishable key is meant to be public — that part
+// is normal for Supabase. What actually protects your data is the Row Level
+// Security policies on each table (see supabase-schema-v2-SECURITY-FIX.sql).
+// This key can only do what those policies allow, regardless of what's in
+// this file.
 const SUPABASE_URL = "https://ljazxhdgdgttblsadypm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_bFxpboWyiblAAoFEz3NOOQ_D8IMF21U";
-const REST_URL = `${SUPABASE_URL}/rest/v1`;
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false
+  }
+});
 
 const SupabaseClient = {
-  _headers() {
-    return {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation"
-    };
-  },
-
-  async _fetch(path, options = {}) {
-    const res = await fetch(`${REST_URL}${path}`, {
-      ...options,
-      headers: { ...this._headers(), ...options.headers }
-    });
-    if (!res.ok) throw new Error(`Supabase ${res.status}`);
-    if (res.status === 204) return null;
-    return res.json();
-  },
+  // Expose the raw client for anything that needs auth state directly.
+  raw: sb,
 
   _toProduct(row) {
     return {
@@ -45,11 +44,17 @@ const SupabaseClient = {
     };
   },
 
+  _check(error) {
+    if (error) throw new Error(error.message || "Supabase request failed");
+  },
+
   async fetchCatalog() {
-    const [products, categories] = await Promise.all([
-      this._fetch("/products?select=*&order=created_at.asc"),
-      this._fetch("/categories?select=*&order=id.asc")
+    const [{ data: products, error: e1 }, { data: categories, error: e2 }] = await Promise.all([
+      sb.from("products").select("*").order("created_at", { ascending: true }),
+      sb.from("categories").select("*").order("id", { ascending: true })
     ]);
+    this._check(e1);
+    this._check(e2);
     return {
       products: products.map((r) => this._toProduct(r)),
       categories: categories.map((r) => this._toCategory(r))
@@ -69,15 +74,15 @@ const SupabaseClient = {
       available: product.available,
       featured: product.featured || false
     };
-    return this._fetch("/products", {
-      method: "POST",
-      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-      body: JSON.stringify(row)
-    });
+    const { data, error } = await sb.from("products").upsert(row).select();
+    this._check(error);
+    return data;
   },
 
   async deleteProduct(id) {
-    return this._fetch(`/products?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    const { error } = await sb.from("products").delete().eq("id", id);
+    this._check(error);
+    return null;
   },
 
   async upsertCategory(category) {
@@ -86,37 +91,36 @@ const SupabaseClient = {
       slug: category.slug || category.id,
       name: category.name
     };
-    return this._fetch("/categories", {
-      method: "POST",
-      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-      body: JSON.stringify(row)
-    });
+    const { data, error } = await sb.from("categories").upsert(row).select();
+    this._check(error);
+    return data;
   },
 
   async deleteCategory(id) {
-    return this._fetch(`/categories?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    const { error } = await sb.from("categories").delete().eq("id", id);
+    this._check(error);
+    return null;
   },
 
   async saveOrder(order) {
-    return this._fetch("/orders", {
-      method: "POST",
-      body: JSON.stringify({
-        customer_name: order.name,
-        customer_email: order.email,
-        customer_phone: order.phone,
-        delivery_address: order.address,
-        notes: order.notes || "",
-        items: order.items,
-        total: order.total,
-        status: "pending"
-      })
-    });
+    const { data, error } = await sb.from("orders").insert({
+      customer_name: order.name,
+      customer_email: order.email,
+      customer_phone: order.phone,
+      delivery_address: order.address,
+      notes: order.notes || "",
+      items: order.items,
+      total: order.total,
+      status: "pending"
+    }).select();
+    this._check(error);
+    return data;
   },
 
   async isAvailable() {
     try {
-      await this._fetch("/products?select=id&limit=1");
-      return true;
+      const { error } = await sb.from("products").select("id").limit(1);
+      return !error;
     } catch {
       return false;
     }
@@ -124,8 +128,9 @@ const SupabaseClient = {
 
   // Services
   async fetchServices() {
-    const services = await this._fetch("/services?select=*&order=display_order.asc");
-    return services.map((row) => ({
+    const { data, error } = await sb.from("services").select("*").order("display_order", { ascending: true });
+    this._check(error);
+    return data.map((row) => ({
       id: row.id,
       name: typeof row.name === "string" ? JSON.parse(row.name) : row.name,
       description: typeof row.description === "string" ? JSON.parse(row.description) : row.description,
@@ -150,21 +155,22 @@ const SupabaseClient = {
       display_order: service.display_order || 0,
       available: service.available
     };
-    return this._fetch("/services", {
-      method: "POST",
-      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-      body: JSON.stringify(row)
-    });
+    const { data, error } = await sb.from("services").upsert(row).select();
+    this._check(error);
+    return data;
   },
 
   async deleteService(id) {
-    return this._fetch(`/services?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    const { error } = await sb.from("services").delete().eq("id", id);
+    this._check(error);
+    return null;
   },
 
-  // Orders Management
+  // Orders Management (admin only — enforced server-side by RLS)
   async fetchOrders() {
-    const orders = await this._fetch("/orders?select=*&order=created_at.desc");
-    return orders.map((row) => ({
+    const { data, error } = await sb.from("orders").select("*").order("created_at", { ascending: false });
+    this._check(error);
+    return data.map((row) => ({
       id: row.id,
       customer_name: row.customer_name,
       customer_email: row.customer_email,
@@ -179,52 +185,84 @@ const SupabaseClient = {
   },
 
   async updateOrderStatus(id, status) {
-    return this._fetch(`/orders?id=eq.${encodeURIComponent(id)}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status })
-    });
+    const { error } = await sb.from("orders").update({ status }).eq("id", id);
+    this._check(error);
+    return null;
   },
 
   // Website Settings
   async fetchSettings() {
-    const settings = await this._fetch("/website_settings?select=*");
+    const { data, error } = await sb.from("website_settings").select("*");
+    this._check(error);
     const result = {};
-    settings.forEach((row) => {
+    data.forEach((row) => {
       result[row.key] = typeof row.value === "string" ? JSON.parse(row.value) : row.value;
     });
     return result;
   },
 
   async upsertSetting(key, value) {
-    return this._fetch("/website_settings", {
-      method: "POST",
-      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-      body: JSON.stringify({ key, value })
-    });
+    const { data, error } = await sb.from("website_settings").upsert({ key, value }).select();
+    this._check(error);
+    return data;
   },
 
-  // Admin Authentication
+  // ---------------------------------------------------------------------
+  // Admin Authentication — real Supabase Auth, not a custom RPC.
+  // "Admin" = an authenticated Supabase Auth user whose auth_user_id is
+  // linked in the admin_users table. The link (not this client code) is
+  // what RLS actually checks server-side via is_admin().
+  // ---------------------------------------------------------------------
   async adminLogin(email, password) {
     try {
-      // Use the verify_admin_password function for secure password verification
-      const result = await this._fetch(`/rpc/verify_admin_password`, {
-        method: "POST",
-        body: JSON.stringify({ email_param: email, password_param: password })
-      });
-      
-      if (result && result.length > 0) {
-        const user = result[0];
-        // Update last login timestamp
-        await this._fetch(`/admin_users?id=eq.${user.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ last_login: new Date().toISOString() })
-        });
-        return { success: true, user: user };
+      const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password });
+      if (authError || !authData?.user) {
+        return { success: false, error: "Invalid credentials" };
       }
-      return { success: false, error: "Invalid credentials" };
+
+      const { data: rows, error: profileError } = await sb
+        .from("admin_users")
+        .select("id, email, full_name, role")
+        .eq("auth_user_id", authData.user.id)
+        .limit(1);
+
+      if (profileError || !rows || rows.length === 0) {
+        // Authenticated with Supabase, but not linked as an admin — do not
+        // treat as logged in. Sign out immediately.
+        await sb.auth.signOut();
+        return { success: false, error: "This account is not authorized as an admin." };
+      }
+
+      return { success: true, user: rows[0] };
     } catch (error) {
       console.error("Login error:", error);
       return { success: false, error: "Authentication failed" };
     }
+  },
+
+  async adminLogout() {
+    await sb.auth.signOut();
+  },
+
+  // Re-checks whether there's an existing, still-valid Supabase Auth
+  // session that's linked to an admin, for page-load / refresh.
+  async getCurrentAdmin() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return null;
+
+    const { data: rows, error } = await sb
+      .from("admin_users")
+      .select("id, email, full_name, role")
+      .eq("auth_user_id", session.user.id)
+      .limit(1);
+
+    if (error || !rows || rows.length === 0) return null;
+    return rows[0];
+  },
+
+  async changeAdminPassword(newPassword) {
+    const { error } = await sb.auth.updateUser({ password: newPassword });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
   }
 };

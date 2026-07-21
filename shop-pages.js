@@ -77,7 +77,8 @@ function hideError() {
 }
 
 function renderProductCard(product, lang) {
-  const name = ShopStore.getLocalized(product, lang, "name");
+  const name = escapeHtml(ShopStore.getLocalized(product, lang, "name"));
+  const image = escapeHtml(product.image);
   const price = ShopStore.formatPrice(product.price, product.currency);
   const available = isProductAvailable(product);
   const fallbackImage = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect fill="%231a1a1a" width="300" height="300"/><text x="50%" y="50%" fill="%23666" text-anchor="middle" dy=".3em" font-size="20">No Image</text></svg>';
@@ -85,7 +86,7 @@ function renderProductCard(product, lang) {
   return `<article class="product-card fade-in visible">
     <div class="product-card-image">
       <a href="product.html?id=${encodeURIComponent(product.id)}">
-        <img src="${product.image}" 
+        <img src="${image}" 
              alt="${name}" 
              loading="lazy" 
              width="300" 
@@ -114,7 +115,7 @@ function renderCategoryFilters(categories, lang) {
   ];
 
   categories.forEach((cat) => {
-    const name = ShopStore.getLocalized(cat, lang, "name");
+    const name = escapeHtml(ShopStore.getLocalized(cat, lang, "name"));
     buttons.push(
       `<button type="button" class="filter-btn ${activeCategory === cat.id ? "active" : ""}" data-category="${cat.id}">${name}</button>`
     );
@@ -221,14 +222,24 @@ async function initProductDetail() {
   }
 
   if (notFound) notFound.hidden = true;
-  const name = ShopStore.getLocalized(product, lang, "name").replace(/[<>]/g, '');
-  const desc = ShopStore.getLocalized(product, lang, "description").replace(/[<>]/g, '');
+  const rawDesc = ShopStore.getLocalized(product, lang, "description");
+  const name = escapeHtml(ShopStore.getLocalized(product, lang, "name"));
+  const desc = escapeHtml(rawDesc);
   const price = ShopStore.formatPrice(product.price, product.currency);
   const available = isProductAvailable(product);
   const maxQty = Math.max(product.stock, 1);
 
   document.getElementById("breadcrumb-name").textContent = name;
   document.title = `${name} - SubCore Solutions`;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute("content", rawDesc.slice(0, 160));
+  let canonicalLink = document.querySelector('link[rel="canonical"]');
+  if (!canonicalLink) {
+    canonicalLink = document.createElement("link");
+    canonicalLink.setAttribute("rel", "canonical");
+    document.head.appendChild(canonicalLink);
+  }
+  canonicalLink.setAttribute("href", `https://subcoresolutions.online/product.html?id=${encodeURIComponent(product.id)}`);
 
   container.innerHTML = `
     <div class="product-detail-image">
@@ -294,11 +305,12 @@ async function initCart() {
   const rows = items.map(({ product, qty }) => {
     const subtotal = product.price * qty;
     total += subtotal;
-    const name = ShopStore.getLocalized(product, lang, "name").replace(/[<>]/g, '');
+    const name = escapeHtml(ShopStore.getLocalized(product, lang, "name"));
+    const image = escapeHtml(product.image);
     return `<tr data-cart-id="${product.id}">
       <td>
         <div class="cart-product">
-          <img src="${product.image}" alt="${name}" width="64" height="64">
+          <img src="${image}" alt="${name}" width="64" height="64">
           <a href="product.html?id=${encodeURIComponent(product.id)}">${name}</a>
         </div>
       </td>
@@ -403,7 +415,7 @@ async function initCheckout() {
   const summaryItems = items.map(({ product, qty }) => {
     const subtotal = product.price * qty;
     total += subtotal;
-    const name = ShopStore.getLocalized(product, lang, "name").replace(/[<>]/g, '');
+    const name = escapeHtml(ShopStore.getLocalized(product, lang, "name"));
     return `<div class="cart-summary-row">
       <span>${name} × ${qty}</span>
       <span>${ShopStore.formatPrice(subtotal, product.currency)}</span>

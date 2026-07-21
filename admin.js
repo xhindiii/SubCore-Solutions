@@ -1,7 +1,3 @@
-const ADMIN_SESSION_KEY = "subcore_admin_session";
-const SESSION_EXPIRY_KEY = "subcore_admin_session_expiry";
-const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
-
 let adminData = null;
 let adminServices = null;
 let adminOrders = null;
@@ -50,20 +46,14 @@ const Validator = {
 };
 
 // Authentication
-function isAdminLoggedIn() {
-  const session = sessionStorage.getItem(ADMIN_SESSION_KEY);
-  const expiry = sessionStorage.getItem(SESSION_EXPIRY_KEY);
-  
-  if (!session || !expiry) return null;
-  
-  // Check session expiration
-  if (Date.now() > parseInt(expiry)) {
-    adminLogout();
-    return null;
-  }
-  
+// Real security now lives in Supabase (a genuine authenticated session +
+// server-side RLS policies, see supabase-schema-v2-SECURITY-FIX.sql).
+// currentUser here is just a client-side cache of that session for the UI —
+// it is not itself a security boundary.
+async function getAdminUser() {
+  if (typeof SupabaseClient === "undefined") return null;
   try {
-    return JSON.parse(session);
+    return await SupabaseClient.getCurrentAdmin();
   } catch {
     return null;
   }
@@ -78,9 +68,6 @@ async function adminLogin(email, password) {
   try {
     const result = await SupabaseClient.adminLogin(email, password);
     if (result.success) {
-      const expiry = Date.now() + SESSION_DURATION;
-      sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(result.user));
-      sessionStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
       currentUser = result.user;
       return true;
     }
@@ -93,15 +80,13 @@ async function adminLogin(email, password) {
   }
 }
 
-function adminLogout() {
-  sessionStorage.removeItem(ADMIN_SESSION_KEY);
-  sessionStorage.removeItem(SESSION_EXPIRY_KEY);
+async function adminLogout() {
+  await SupabaseClient.adminLogout();
   currentUser = null;
 }
 
 function requireAuth() {
-  if (!isAdminLoggedIn()) {
-    adminLogout();
+  if (!currentUser) {
     window.location.reload();
     return false;
   }
@@ -230,7 +215,7 @@ async function initAdmin() {
   const loginScreen = document.getElementById("admin-login");
   const dashboardContainer = document.getElementById("admin-dashboard-container");
   const dashboardTemplate = document.getElementById("admin-dashboard-template");
-  const user = isAdminLoggedIn();
+  const user = await getAdminUser();
 
   if (user) {
     // Inject dashboard from template
@@ -247,7 +232,7 @@ async function initAdmin() {
       e.preventDefault();
       clearError();
       const email = Validator.sanitizeEmail(document.getElementById("admin-email").value);
-      const password = Validator.sanitizeString(document.getElementById("admin-password").value);
+      const password = document.getElementById("admin-password").value;
       
       if (!email || !password) {
         showError("Please enter both email and password");
@@ -270,8 +255,8 @@ async function initAdmin() {
 // Bind dashboard events after injection
 function bindDashboardEvents() {
   // Logout
-  document.getElementById("admin-logout")?.addEventListener("click", () => {
-    adminLogout();
+  document.getElementById("admin-logout")?.addEventListener("click", async () => {
+    await adminLogout();
     window.location.reload();
   });
 
@@ -705,9 +690,13 @@ function bindAdminForms() {
       showError("Password must be at least 6 characters");
       return;
     }
-    
-    // Password change should be done via backend - for now, show message
-    showSuccess("Password update requires backend implementation. Contact administrator.");
+
+    const result = await SupabaseClient.changeAdminPassword(pw);
+    if (result.success) {
+      showSuccess("Password updated successfully");
+    } else {
+      showError(result.error || "Failed to update password");
+    }
     document.getElementById("new-password").value = "";
   });
   document.getElementById("company-info-form")?.addEventListener("submit", saveCompanyInfo);

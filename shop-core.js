@@ -1,6 +1,22 @@
 const SHOP_STORAGE_KEY = "subcore_shop_data";
 const CART_STORAGE_KEY = "subcore_cart";
 
+// Escapes text before it's interpolated into innerHTML templates. Product/
+// category/service names and descriptions come from the database and could
+// contain HTML if ever entered by mistake (or by a compromised admin
+// account) — this stops that from becoming a stored-XSS payload rendered to
+// every visitor. Always use this (not a partial `<`/`>` strip) for any
+// DB-sourced text going into innerHTML.
+function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const ShopStore = {
   async load() {
     if (typeof SupabaseClient !== "undefined") {

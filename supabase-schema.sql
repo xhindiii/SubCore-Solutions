@@ -1,4 +1,15 @@
 -- SubCore Solutions Complete Schema
+-- ============================================================================
+-- ⚠️ SUPERSEDED — DO NOT RE-RUN THIS FILE ON YOUR LIVE PROJECT.
+-- This is the ORIGINAL schema, kept only for historical reference. It
+-- contains RLS policies ("USING (true)") that allow anyone with the public
+-- anon key to write/delete all data, and a hardcoded default password
+-- ('Localadmin!') for the admin account.
+--
+-- Your live database should be running supabase-schema-v2-SECURITY-FIX.sql
+-- instead, and the admin account should be a real Supabase Auth user (see
+-- SECURITY_MIGRATION_GUIDE.md), not a row inserted by this file.
+-- ============================================================================
 -- Run this in your Supabase SQL Editor
 
 -- Enable pgcrypto extension for password hashing
