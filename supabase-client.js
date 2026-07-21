@@ -6,8 +6,8 @@
 // Security policies on each table (see supabase-schema-v2-SECURITY-FIX.sql).
 // This key can only do what those policies allow, regardless of what's in
 // this file.
-const SUPABASE_URL = "https://ljazxhdgdgttblsadypm.supabase.co";
-const SUPABASE_KEY = "sb_publishable_bFxpboWyiblAAoFEz3NOOQ_D8IMF21U";
+const SUPABASE_URL = "https://rmoknncvaqlkxanuvxms.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtb2tubmN2YXFsa3hhbnV2eG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NjYxNDcsImV4cCI6MjEwMDI0MjE0N30.pE2yIW0SyxMKTUWQ1zAHbI2iKKiSmehsHsQUGhWxQac";
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
