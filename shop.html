@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SubCore Solutions Shop — Hardware, networking equipment, software and IT accessories.">
+<title>Shop - SubCore Solutions</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="canonical" href="https://subcoresolutions.online/shop.html">
+    <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
+    <a href="students.html" data-i18n="nav.students">Studentë</a>
+    <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
+  </nav>
+  <div class="header-actions">
+    <div class="lang-switcher">
+      <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">ALB</button>
+      <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">ENG</button>
+    </div>
+    <a href="cart.html" class="cart-link" data-i18n-aria="shop.cart" aria-label="Shporta">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="cart-count">0</span>
+    </a>
+    <button type="button" class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-overlay" aria-hidden="true"></div>
+</header>
+
+<section class="hero hero-short">
+  <div class="fade-in">
+    <h1 data-i18n="shop.hero.title">IT Products & Equipment</h1>
+    <p data-i18n="shop.hero.subtitle">Quality hardware, networking gear, and software — delivered with expert support.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="shop-toolbar fade-in">
+    <div class="shop-search">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" id="shop-search" data-i18n-placeholder="shop.search" placeholder="Search products…" aria-label="Search products">
+    </div>
+    <div class="shop-filters" id="category-filters" role="group" aria-label="Categories"></div>
+  </div>
+  <div class="product-grid" id="product-grid"></div>
+  <div class="empty-state" id="shop-empty" hidden>
+    <h3 data-i18n="shop.noResults">No products found</h3>
+    <p data-i18n="shop.noResultsDesc">Try adjusting your search or browse all categories.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="index.html"><img src="logo-compact.svg" class="logo" alt="SubCore Solutions"></a>
+      <p data-i18n="footer.tagline">Professional IT infrastructure, networking, and support for businesses across Albania.</p>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer.links">Quick Links</h4>
+      <a href="index.html#services" data-i18n="nav.services">Services</a>
+      <a href="index.html#pricing" data-i18n="nav.pricing">Pricing</a>
+      <a href="shop.html" data-i18n="nav.shop">Shop</a>
+      <a href="about.html" data-i18n="nav.about">About</a>
+      <a href="students.html" data-i18n="nav.students">Students</a>
+      <a href="contact.html" data-i18n="nav.contact">Contact</a>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer.contact">Contact</h4>
+      <a href="mailto:info@subcoresolutions.online">info@subcoresolutions.online</a>
+      <a href="tel:+355686661686">+355 68 666 1686</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p><span data-i18n="footer.rights">© 2026 SubCore Solutions</span></p>
+  </div>
+</footer>
+
+<a href="https://wa.me/355686661686" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script src="translations.js"></script>
+<script src="supabase-client.js"></script>
+<script src="shop-core.js"></script>
+<script src="scripts.js"></script>
+<script src="shop-pages.js"></script>
+</body>
+</html>
