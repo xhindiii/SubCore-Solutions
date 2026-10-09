@@ -11,7 +11,9 @@ Website and online shop for SubCore Solutions (IT services, Albania). Plain HTML
 | Shop with filters | `shop.html` |
 | Product | `product.html?id=…` |
 | Cart and checkout (pay on delivery) | `cart.html`, `checkout.html` |
-| Students, About, Contact | `students.html`, `about.html`, `contact.html` |
+| Request IT support / quote / consultation / site visit / product question | `quote.html` |
+| Students, About, Contact, FAQ | `students.html`, `about.html`, `contact.html`, `faq.html` |
+| Privacy & cookies, Terms, Delivery/returns/warranty | `privacy.html`, `terms.html`, `shipping-returns.html` |
 | Admin panel | `admin.html` |
 
 ## One-time setup (about 10 minutes)
@@ -45,3 +47,11 @@ Page copy lives in `translations.js` and `translations-extra.js` (both languages
 - The key in `supabase-client.js` is the public anon key. What protects the data is Row Level Security (see the SQL files). Only a signed-in admin can change products, orders, services and settings.
 - If the old admin password (`Localadmin!`) was ever used, change it — it was public in the repository history.
 - Never put the Supabase `service_role` key in this repository.
+
+## Brand
+
+Deep teal `#0a1920` / `#0e2229`, soft cyan `#7eb8c9`, teal `#176f86` for buttons on light pages. Logo files: `logo-compact.svg` (light backgrounds), `logo-compact-light.svg` (dark backgrounds), `logo-mark.svg`, `favicon.svg`/`.ico`, `apple-touch-icon.png`, `og-image.png` (social sharing). Text in the logos is converted to outlines, so it looks the same on every device.
+
+## Before launch
+
+The privacy, terms and delivery/returns pages are practical drafts based on how the site works. Have them reviewed (and add your company registration details) before publishing.

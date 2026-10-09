@@ -511,7 +511,8 @@
     view.innerHTML = '<div class="toolbar"><select id="qf-s" aria-label="Status"><option value="">All statuses</option>' + INQ_STATUS.map((s) => '<option value="' + s[0] + '"' + (S.qf.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + '</select></div>';
     $("#qf-s").addEventListener("change", (e) => { S.qf.status = e.target.value; viewInquiries(view); });
     if (!list.length) { view.insertAdjacentHTML("beforeend", '<div class="card"><div class="empty">No enquiries.</div></div>'); return; }
-    const typ = (q) => q.type === "service" ? '<span class="pill blue">Service</span>' : '<span class="pill">Contact</span>';
+    const TYPE_LABEL = { contact: "Contact", service: "Service", support: "Support", quote: "Quote", consult: "Consultation", visit: "Site visit", product: "Product" };
+    const typ = (q) => '<span class="pill ' + (q.type === "contact" ? "" : q.type === "support" ? "amber" : "blue") + '">' + esc(TYPE_LABEL[q.type] || q.type) + "</span>";
     view.insertAdjacentHTML("beforeend",
       '<div class="table-wrap has-cards"><table class="data collapse"><thead><tr><th>From</th><th>Type</th><th>Message</th><th>Date</th><th>Status</th></tr></thead><tbody>' +
       list.map((q) => '<tr style="cursor:pointer" data-action="open-inquiry" data-id="' + q.id + '" tabindex="0"><td><strong>' + esc(q.name) + '</strong><br><small class="muted">' + esc(q.phone || q.email) + "</small></td><td>" + typ(q) + (q.service ? "<br><small>" + esc(q.service) + "</small>" : "") + '</td><td style="max-width:340px">' + esc((q.message || "").slice(0, 110)) + "</td><td>" + esc(fmtDate(q.created_at)) + "</td><td>" + pill(q.status, INQ_STATUS) + "</td></tr>").join("") + "</tbody></table></div>" +

@@ -133,7 +133,7 @@ CREATE TRIGGER orders_restock_trg AFTER UPDATE OF status ON orders
 -- 3) Inquiries (contact form + service requests) -----------------------------
 CREATE TABLE IF NOT EXISTS inquiries (
   id         BIGSERIAL PRIMARY KEY,
-  type       TEXT NOT NULL DEFAULT 'contact' CHECK (type IN ('contact', 'service')),
+  type       TEXT NOT NULL DEFAULT 'contact',
   name       TEXT NOT NULL,
   email      TEXT NOT NULL DEFAULT '',
   phone      TEXT NOT NULL DEFAULT '',
@@ -143,6 +143,10 @@ CREATE TABLE IF NOT EXISTS inquiries (
   status     TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'done')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Request types: contact form, service request, and the Request IT support / quote page.
+ALTER TABLE inquiries DROP CONSTRAINT IF EXISTS inquiries_type_check;
+ALTER TABLE inquiries ADD CONSTRAINT inquiries_type_check
+  CHECK (type IN ('contact', 'service', 'support', 'quote', 'consult', 'visit', 'product'));
 ALTER TABLE inquiries ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public insert inquiries" ON inquiries;

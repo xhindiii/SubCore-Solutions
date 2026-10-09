@@ -118,7 +118,14 @@ function initMobileMenu() {
     document.body.classList.remove("menu-open");
     toggle.setAttribute("aria-expanded", "false");
   };
+  window.addEventListener("scroll", () => { if (nav.classList.contains("open")) close(); }, { passive: true });
   const open = () => {
+    // The top bar scrolls away but the header is sticky, so place the drawer under the header's real bottom edge.
+    const hdr = document.querySelector("header.site-header");
+    const bottom = hdr ? Math.round(hdr.getBoundingClientRect().bottom) : 0;
+    nav.style.top = bottom + "px";
+    nav.style.maxHeight = "calc(100dvh - " + bottom + "px)";
+    if (overlay) overlay.style.top = bottom + "px";
     nav.classList.add("open");
     toggle.classList.add("active");
     overlay?.classList.add("visible");

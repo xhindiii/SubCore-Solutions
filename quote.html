@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title data-sq="Faqja nuk u gjet — SubCore Solutions" data-en="Page not found — SubCore Solutions">Faqja nuk u gjet — SubCore Solutions</title>
-<meta name="description" content="Faqja nuk u gjet.">
-<meta name="robots" content="noindex">
-<link rel="canonical" href="https://subcoresolutions.online/404.html">
+<title data-sq="Kërko mbështetje IT ose ofertë — SubCore Solutions" data-en="Request IT support or a quote — SubCore Solutions">Kërko mbështetje IT ose ofertë — SubCore Solutions</title>
+<meta name="description" content="Kërkoni mbështetje teknike, ofertë shërbimi, konsultë, vizitë në vend ose bëni një pyetje për produkt.">
+<link rel="canonical" href="https://subcoresolutions.online/quote.html">
 <meta property="og:site_name" content="SubCore Solutions">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="sq_AL">
-<meta property="og:title" content="Faqja nuk u gjet — SubCore Solutions">
-<meta property="og:description" content="Faqja nuk u gjet.">
-<meta property="og:url" content="https://subcoresolutions.online/404.html">
+<meta property="og:title" content="Kërko mbështetje IT ose ofertë — SubCore Solutions">
+<meta property="og:description" content="Kërkoni mbështetje teknike, ofertë shërbimi, konsultë, vizitë në vend ose bëni një pyetje për produkt.">
+<meta property="og:url" content="https://subcoresolutions.online/quote.html">
 <meta property="og:image" content="https://subcoresolutions.online/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -25,7 +24,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<base href="/">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -75,7 +73,56 @@
   <div class="nav-overlay" aria-hidden="true"></div>
 </header>
 <main id="main">
-<section class="section"><div class="container"><div class="empty-state" style="padding-block:4rem"><svg class="icon " aria-hidden="true"><use href="icons.svg#search"/></svg><h1 style="font-size:1.8rem;margin-bottom:.5rem" data-i18n="404.title">Faqja nuk u gjet</h1><p data-i18n="404.desc">Faqja që kërkoni nuk ekziston ose është zhvendosur.</p><a href="index.html" class="button" data-i18n="404.home">Kthehu te kryefaqja</a></div></div></section>
+<section class="page-header"><div class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html" data-i18n="nav.home">Kryefaqja</a><span class="sep">/</span><span data-i18n="q.title">Kërko mbështetje IT ose ofertë</span></nav>
+  <h1 data-i18n="q.title">Kërko mbështetje IT ose ofertë</h1>
+  <p class="lead" data-i18n="q.lead">Na tregoni çfarë ju nevojitet dhe do t'ju kontaktojmë me telefon ose WhatsApp sa më shpejt të jetë e mundur.</p>
+</div></section>
+<section class="section"><div class="container quote-layout">
+  <form class="form-card" id="quote-form" novalidate>
+    <fieldset style="border:0;padding:0;margin:0"><legend class="form-label" style="font-weight:600;margin-bottom:.75rem" data-i18n="q.type">Çfarë ju nevojitet?</legend>
+    <div class="type-grid"><label class="type-card"><input type="radio" name="type" value="support" checked><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#headset"/></svg></span><span><strong data-i18n="q.t.support">Mbështetje teknike</strong><small data-i18n="q.t.support.d">Diçka nuk punon ose është prishur</small></span></label>
+<label class="type-card"><input type="radio" name="type" value="quote"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#file-text"/></svg></span><span><strong data-i18n="q.t.quote">Ofertë shërbimi</strong><small data-i18n="q.t.quote.d">Çmim për një shërbim ose projekt</small></span></label>
+<label class="type-card"><input type="radio" name="type" value="consult"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#calendar"/></svg></span><span><strong data-i18n="q.t.consult">Konsultë</strong><small data-i18n="q.t.consult.d">Bisedoni IT-në tuaj me një inxhinier</small></span></label>
+<label class="type-card"><input type="radio" name="type" value="visit"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#map"/></svg></span><span><strong data-i18n="q.t.visit">Vizitë në vend</strong><small data-i18n="q.t.visit.d">Vijmë në zyrën ose shtëpinë tuaj</small></span></label>
+<label class="type-card"><input type="radio" name="type" value="product"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#question"/></svg></span><span><strong data-i18n="q.t.product">Pyetje për produkt</strong><small data-i18n="q.t.product.d">Disponueshmëri, përputhshmëri ose këshillë para blerjes</small></span></label>
+</div></fieldset>
+    <div class="form-row">
+      <div class="form-group"><label for="q-name" data-i18n="form.name">Emri i plotë</label><input type="text" id="q-name" name="name" autocomplete="name" required></div>
+      <div class="form-group"><label for="q-phone" data-i18n="form.phone">Telefon</label><input type="tel" id="q-phone" name="phone" autocomplete="tel" required></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label for="q-email">Email <span class="optional">(<span data-i18n="common.optional">opsionale</span>)</span></label><input type="email" id="q-email" name="email" autocomplete="email"></div>
+      <div class="form-group"><label for="q-company">Kompania <span class="optional">(<span data-i18n="common.optional">opsionale</span>)</span></label><input type="text" id="q-company" name="company" autocomplete="organization"></div>
+    </div>
+    <div class="form-group" data-for="support quote consult visit"><label for="q-service" data-i18n="q.f.service">Shërbimi</label><select id="q-service" name="service"><option value="" data-i18n="q.f.any">Nuk jam i sigurt / tjetër</option>
+<option value="server" data-i18n="services.server.title">Server &amp; Infrastrukturë</option>
+<option value="networking" data-i18n="services.networking.title">Zgjidhje Rrjeti</option>
+<option value="support" data-i18n="services.support.title">Mbështetje IT Hibride</option>
+<option value="cloud" data-i18n="services.cloud.title">Cloud &amp; Microsoft 365</option>
+<option value="security" data-i18n="services.security.title">Siguri Kibernetike &amp; Backup</option>
+<option value="hardware" data-i18n="services.hardware.title">Prokurim &amp; Konfigurim Hardware</option>
+<option value="monitoring" data-i18n="services.monitoring.title">Monitorim &amp; Mirëmbajtje</option>
+<option value="recovery" data-i18n="services.recovery.title">Rikuperim nga Fatkeqësitë</option>
+<option value="consulting" data-i18n="services.consulting.title">Konsulencë &amp; Audit IT</option>
+<option value="webdev" data-i18n="services.webdev.title">Zhvillim Website</option>
+</select></div>
+    <div class="form-row" data-for="consult visit">
+      <div class="form-group"><label for="q-date" data-i18n="q.f.date">Data e preferuar</label><input type="date" id="q-date" name="date"></div>
+      <div class="form-group" data-for="visit"><label for="q-address" data-i18n="q.f.address">Adresa e vizitës</label><input type="text" id="q-address" name="address" autocomplete="street-address"></div>
+    </div>
+    <div class="form-group" data-for="product" hidden><label for="q-product" data-i18n="q.f.product">Emri ose linku i produktit</label><input type="text" id="q-product" name="product"></div>
+    <div class="form-group"><label for="q-message" data-i18n="form.message">Mesazhi</label><textarea id="q-message" name="message" rows="5" required></textarea></div>
+    <div class="hp-field" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+    <button type="submit" class="button" data-i18n="form.submit">Dërgo kërkesën</button>
+    <div class="form-status" id="quote-status" role="status" hidden></div>
+  </form>
+  <aside class="side-notes">
+    <div class="side-note"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg></span><div><strong data-i18n="q.side.1.t">Preferoni të flisni?</strong><span data-i18n="q.side.1.d">Telefononi +355 68 666 1686 ose na shkruani në WhatsApp.</span><div style="margin-top:.6rem;display:flex;gap:.5rem;flex-wrap:wrap"><a class="button button-outline button-sm" href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg>+355 68 666 1686</a><a class="button button-whatsapp button-sm" href="https://wa.me/355686661686" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg>WhatsApp</a></div></div></div>
+    <div class="side-note"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#network"/></svg></span><div><strong data-i18n="q.side.2.t">Fillimisht në distancë</strong><span data-i18n="q.side.2.d">Shumë probleme zgjidhen online. Nëse jo, caktojmë një vizitë.</span></div></div>
+    <div class="side-note"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#lock"/></svg></span><div><strong data-i18n="q.side.3.t">Të dhënat tuaja mbeten tek ne</strong><span data-i18n="q.side.3.d">I përdorim vetëm për t'iu përgjigjur kësaj kërkese.</span></div></div>
+  </aside>
+</div></section>
 </main>
 <footer class="site-footer on-deep">
   <div class="container">
@@ -127,9 +174,12 @@
 </footer>
 
 <a href="https://wa.me/355686661686" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg></a>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" defer></script>
 <script src="translations.js" defer></script>
 <script src="translations-extra.js" defer></script>
+<script src="supabase-client.js" defer></script>
 <script src="shop-core.js" defer></script>
 <script src="scripts.js" defer></script>
+<script src="quote.js" defer></script>
 </body>
 </html>

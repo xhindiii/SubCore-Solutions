@@ -8,11 +8,19 @@
 <link rel="canonical" href="https://subcoresolutions.online/services.html">
 <meta property="og:site_name" content="SubCore Solutions">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="sq_AL">
 <meta property="og:title" content="Shërbimet IT &amp; çmimet — SubCore Solutions">
 <meta property="og:description" content="Menaxhim serverësh, rrjete, siguri, cloud, hardware dhe zhvillim website-sh. Çmime fillestare transparente dhe ofertë e qartë para punës.">
 <meta property="og:url" content="https://subcoresolutions.online/services.html">
-<meta name="theme-color" content="#0b3b66">
-<link rel="icon" href="favicon.ico">
+<meta property="og:image" content="https://subcoresolutions.online/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0a1920">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -20,32 +28,48 @@
 </head>
 <body>
 <a href="#main" class="skip-link" data-i18n="nav.skip">Kalo te përmbajtja</a>
+<div class="topbar"><div class="container topbar-inner">
+  <div class="topbar-group">
+    <a href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg><span>+355 68 666 1686</span></a>
+    <a href="mailto:info@subcoresolutions.online" class="topbar-secondary"><svg class="icon " aria-hidden="true"><use href="icons.svg#mail"/></svg><span>info@subcoresolutions.online</span></a>
+    <span class="hours"><svg class="icon " aria-hidden="true"><use href="icons.svg#clock"/></svg><span data-i18n="footer.hours">Mbështetje në distancë dhe në vend</span></span>
+  </div>
+  <div class="topbar-group topbar-secondary">
+    <a href="quote.html?type=support"><svg class="icon " aria-hidden="true"><use href="icons.svg#headset"/></svg><span data-i18n="tb.support">Kërko mbështetje IT</span></a>
+    <a href="https://wa.me/355686661686" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg><span>WhatsApp</span></a>
+  </div>
+</div></div>
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="index.html"><img src="logo-compact.svg" alt="SubCore Solutions" width="178" height="28"></a>
-    <nav id="site-nav" aria-label="Main">
-    <a href="index.html" data-i18n="nav.home">Kryefaqja</a>
-    <a href="services.html" class="active" aria-current="page" data-i18n="nav.services">Shërbimet</a>
-    <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
-    <a href="students.html" data-i18n="nav.students">Studentë</a>
-    <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
-    <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
-    <a class="nav-cta button" href="contact.html" data-i18n="nav.quote">Kërko ofertë</a>
-      <div class="lang-switcher lang-switcher-mobile" role="group" aria-label="Language">
-        <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
-        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
-      </div>
-    </nav>
+    <a class="brand" href="index.html" aria-label="SubCore Solutions"><img src="logo-compact.svg" alt="SubCore Solutions" width="148" height="44"></a>
+    <form class="header-search" action="shop.html" method="get" role="search">
+      <svg class="icon search-icon" aria-hidden="true"><use href="icons.svg#search"/></svg>
+      <input type="search" name="q" data-i18n-placeholder="shop.search" placeholder="Kërko produkte" data-i18n-aria="nav.search" aria-label="Kërko produkte" autocomplete="off">
+      <button type="submit" data-i18n-aria="nav.search" aria-label="Kërko produkte"><svg class="icon " aria-hidden="true"><use href="icons.svg#search"/></svg></button>
+    </form>
     <div class="header-actions">
       <div class="lang-switcher" role="group" aria-label="Language">
         <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
         <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
       </div>
       <a href="cart.html" class="cart-link" data-i18n-aria="shop.cart" aria-label="Shporta"><svg class="icon icon-lg" aria-hidden="true"><use href="icons.svg#cart"/></svg><span class="cart-count" aria-live="polite">0</span></a>
-      <a href="contact.html" class="button button-sm header-cta" data-i18n="nav.quote">Kërko ofertë</a>
       <button type="button" class="menu-toggle" aria-controls="site-nav" aria-expanded="false" data-i18n-aria="nav.menu" aria-label="Menuja"><span></span><span></span><span></span></button>
     </div>
   </div>
+  <nav id="site-nav" aria-label="Main"><div class="container nav-inner">
+      <a href="index.html" data-i18n="nav.home">Kryefaqja</a>
+      <a href="services.html" class="active" aria-current="page" data-i18n="nav.services">Shërbimet</a>
+      <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
+      <a href="students.html" data-i18n="nav.students">Studentë</a>
+      <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
+      <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
+      <a class="nav-cta" href="quote.html" data-i18n="nav.quote">Kërko ofertë</a>
+      <div class="nav-contact"><a href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg><span>+355 68 666 1686</span></a><a href="https://wa.me/355686661686" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg><span>WhatsApp</span></a></div>
+      <div class="lang-switcher lang-switcher-mobile" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+  </div></nav>
   <div class="nav-overlay" aria-hidden="true"></div>
 </header>
 <main id="main">
@@ -58,60 +82,70 @@
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#server"/></svg></span>
   <h3 data-i18n="services.server.title">Server &amp; Infrastrukturë</h3>
   <p data-i18n="services.server.desc">Menaxhim dhe mirëmbajtje e plotë e mjediseve IT të ndërmarrjeve.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.server.1">Instalim i serverëve fizikë dhe virtualë</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.server.2">Përditësime, monitorim dhe mirëmbajtje e rregullt</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.server.3">Përdorues, të drejta aksesi dhe Active Directory</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="server" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="networking">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#network"/></svg></span>
   <h3 data-i18n="services.networking.title">Zgjidhje Rrjeti</h3>
   <p data-i18n="services.networking.desc">Sisteme rrjeti të sigurta, të shkallëzueshme dhe të optimizuara.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.networking.1">Projektim rrjeti, kabllim dhe mbulim Wi-Fi</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.networking.2">Switch-e, router-a, firewall dhe VPN</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.networking.3">Gjetje defektesh dhe përmirësim performance</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="networking" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="support">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#support"/></svg></span>
   <h3 data-i18n="services.support.title">Mbështetje IT Hibride</h3>
   <p data-i18n="services.support.desc">Mbështetje në distancë dhe në terren për fleksibilitet maksimal.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.support.1">Ndihmë në distancë me telefon, chat ose ndarje ekrani</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.support.2">Vizita në vend kur në distancë nuk mjafton</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.support.3">Kompjuterë, laptopë, printerë dhe software</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="support" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="cloud">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#cloud"/></svg></span>
   <h3 data-i18n="services.cloud.title">Cloud &amp; Microsoft 365</h3>
   <p data-i18n="services.cloud.desc">Migrim cloud, konfigurim dhe menaxhim i Microsoft 365 dhe Google Workspace.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.cloud.1">Konfigurim Microsoft 365 dhe email në cloud</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.cloud.2">Migrim i skedarëve, email-eve dhe përdoruesve</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.cloud.3">Kopje rezervë dhe ruajtje në cloud</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="cloud" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="security">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#shield"/></svg></span>
   <h3 data-i18n="services.security.title">Siguri Kibernetike &amp; Backup</h3>
   <p data-i18n="services.security.desc">Mbrojtje endpoint, firewall, backup dhe mbrojtje nga ransomware.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.security.1">Firewall, antivirus dhe forcim i aksesit</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.security.2">Kontrolle sigurie dhe udhëzime për përdoruesit</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.security.3">Përditësime dhe riparim i dobësive</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="security" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="hardware">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#laptop"/></svg></span>
   <h3 data-i18n="services.hardware.title">Prokurim &amp; Konfigurim Hardware</h3>
   <p data-i18n="services.hardware.desc">PC, printerë, pajisje periferike — blerje, konfigurim dhe instalim.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.hardware.1">Zgjedhje, furnizim dhe vendosje e pajisjeve</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.hardware.2">Përmirësime: SSD, RAM dhe komponentë</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.hardware.3">Diagnostikim dhe riparime</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="hardware" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="monitoring">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#activity"/></svg></span>
   <h3 data-i18n="services.monitoring.title">Monitorim &amp; Mirëmbajtje</h3>
   <p data-i18n="services.monitoring.desc">Monitorim proaktiv 24/7, menaxhim patch-esh dhe shëndet sistemi.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.monitoring.1">Njoftime për serverët, rrjetin dhe disqet</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.monitoring.2">Kontrolle periodike dhe raporte</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.monitoring.3">Problemet gjenden para se t'i vërejnë përdoruesit</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="monitoring" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="recovery">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#refresh"/></svg></span>
   <h3 data-i18n="services.recovery.title">Rikuperim nga Fatkeqësitë</h3>
   <p data-i18n="services.recovery.desc">Planifikim vazhdimësie biznesi dhe zgjidhje rikuperimi të shpejtë.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.recovery.1">Planifikim dhe verifikim i kopjeve rezervë</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.recovery.2">Provë e rikthimit të të dhënave</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.recovery.3">Rikuperim pas dështimit ose humbjes së të dhënave</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="recovery" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="consulting">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#clipboard"/></svg></span>
   <h3 data-i18n="services.consulting.title">Konsulencë &amp; Audit IT</h3>
   <p data-i18n="services.consulting.desc">Vlerësime rrjeti, audit sigurie dhe planifikim strategjik IT.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.consulting.1">Vlerësim i infrastrukturës ekzistuese</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.consulting.2">Planifikim buxheti dhe përmirësimesh</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.consulting.3">Zgjedhje furnitorësh dhe pajisjesh</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="consulting" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 <article class="service-card" id="webdev">
   <span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#globe"/></svg></span>
   <h3 data-i18n="services.webdev.title">Zhvillim Website</h3>
   <p data-i18n="services.webdev.desc">Krijim dhe zhvillim profesional website-sh për biznese dhe projekte personale.</p>
+  <ul class="service-scope"><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.webdev.1">Website kompanie dhe dyqane online</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.webdev.2">Dizajn, strukturë përmbajtjeje dhe bazat e SEO</span></li><li><svg class="icon " aria-hidden="true"><use href="icons.svg#check"/></svg><span data-i18n="scope.webdev.3">Hosting, domene dhe mirëmbajtje</span></li></ul>
   <div class="service-foot"><button type="button" class="button button-outline button-sm" data-request="webdev" data-i18n="services.request">Kërko këtë shërbim</button></div>
 </article>
 </div></div></section>
@@ -185,21 +219,21 @@
 <details class="faq-item"><summary><span data-i18n="faq.3.q">A ka zbritje për studentë?</span><svg class="icon " aria-hidden="true"><use href="icons.svg#chevron-down"/></svg></summary><p data-i18n="faq.3.a">Po — studentët marrin 20% zbritje në shërbimet e faqes së studentëve kur tregojnë një ID studentore të vlefshme.</p></details>
 <details class="faq-item"><summary><span data-i18n="faq.4.q">Cilat zona mbuloni?</span><svg class="icon " aria-hidden="true"><use href="icons.svg#chevron-down"/></svg></summary><p data-i18n="faq.4.a">Jemi me qendër në Shqipëri dhe mbështesim klientë në të gjithë vendin dhe rajonin, në distancë ose në vend.</p></details>
 </div></div></section>
-<section class="cta-band section-tight" style="padding-block:3.5rem">
+<section class="cta-band on-deep section-tight" style="padding-block:3.5rem">
   <div class="container cta-inner">
     <div><h2 data-i18n="cta.title">Gati të Filloni?</h2><p data-i18n="cta.desc">Na tregoni nevojat tuaja IT dhe do t'ju ofrojmë një zgjidhje të përshtatur me çmime transparente.</p></div>
     <div class="button-group">
-      <a href="contact.html" class="button button-light" data-i18n="hero.cta">Kërko ofertë</a>
+      <a href="quote.html" class="button button-light" data-i18n="hero.cta">Kërko ofertë</a>
       <a href="https://wa.me/355686661686" class="button button-on-dark" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg><span data-i18n="contact.social.whatsapp">Bisedo në WhatsApp</span></a>
     </div>
   </div>
 </section>
 </main>
-<footer class="site-footer">
+<footer class="site-footer on-deep">
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <img src="logo-compact-light.svg" alt="SubCore Solutions" width="178" height="28">
+        <a href="index.html" aria-label="SubCore Solutions"><img src="logo-compact-light.svg" alt="SubCore Solutions" width="148" height="44"></a>
         <p data-i18n="footer.tagline">Infrastrukturë IT profesionale, rrjete dhe mbështetje për biznese në të gjithë Shqipërinë.</p>
       </div>
       <div>
@@ -217,17 +251,29 @@
         <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
         <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
       </div>
+      <div>
+        <h4 data-i18n="footer.support">Mbështetje</h4>
+        <a href="quote.html?type=support" data-i18n="q.t.support">Mbështetje teknike</a>
+        <a href="quote.html?type=quote" data-i18n="q.t.quote">Ofertë shërbimi</a>
+        <a href="quote.html?type=visit" data-i18n="q.t.visit">Vizitë në vend</a>
+        <a href="faq.html" data-i18n="nav.faq">Pyetje të shpeshta</a>
+        <a href="cart.html" data-i18n="shop.cart">Shporta</a>
+      </div>
       <div class="footer-contact">
         <h4 data-i18n="footer.contact">Kontakt</h4>
-        <a href="mailto:info@subcoresolutions.online"><svg class="icon " aria-hidden="true"><use href="icons.svg#mail"/></svg>info@subcoresolutions.online</a>
-        <a href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg>+355 68 666 1686</a>
-        <a href="https://wa.me/355686661686" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg>WhatsApp</a>
-        <a href="https://instagram.com/subcore_solutions" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#instagram"/></svg>Instagram</a>
+        <a href="mailto:info@subcoresolutions.online"><svg class="icon " aria-hidden="true"><use href="icons.svg#mail"/></svg><span>info@subcoresolutions.online</span></a>
+        <a href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg><span>+355 68 666 1686</span></a>
+        <a href="https://wa.me/355686661686" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg><span>WhatsApp</span></a>
+        <a href="https://instagram.com/subcore_solutions" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#instagram"/></svg><span>Instagram</span></a>
       </div>
     </div>
     <div class="footer-bottom">
       <span data-i18n="footer.rights">© 2026 SubCore Solutions</span>
-      <span data-i18n="footer.hours">Mbështetje në distancë dhe në vend</span>
+      <span class="footer-legal">
+        <a href="privacy.html" data-i18n="legal.privacy">Privatësia &amp; cookies</a>
+        <a href="terms.html" data-i18n="legal.terms">Kushtet e përdorimit</a>
+        <a href="shipping-returns.html" data-i18n="legal.shipping">Dorëzimi, kthimet &amp; garancia</a>
+      </span>
     </div>
   </div>
 </footer>
