@@ -45,7 +45,7 @@ Page copy lives in `translations.js` and `translations-extra.js` (both languages
 ## Security notes
 
 - The key in `supabase-client.js` is the public anon key. What protects the data is Row Level Security (see the SQL files). Only a signed-in admin can change products, orders, services and settings.
-- If the old admin password (`Localadmin!`) was ever used, change it — it was public in the repository history.
+- If the old admin password (the old default) was ever used, change it — it was public in the repository history.
 - Never put the Supabase `service_role` key in this repository.
 
 ## Brand

@@ -14,11 +14,19 @@
     ["inquiries", "Enquiries", "inbox"],
     ["categories", "Categories", "grid"],
     ["services", "Services", "support"],
+    ["team", "Team", "users"],
+    ["activity", "Activity", "activity"],
     ["settings", "Settings", "settings"]
   ];
+  /* What each role may open. The database enforces the same rules (RLS); this only hides what would be refused. */
+  const ACCESS = { admin: null, editor: ["dashboard", "products", "categories", "services", "settings"], staff: ["dashboard", "orders", "inquiries", "settings"] };
+  const ROLE_LABEL = { admin: "Admin", editor: "Editor", staff: "Staff" };
+  const ROLE_HELP = { admin: "Full access, including team, activity log and delivery settings.", editor: "Products, categories and services. Cannot see orders or customers.", staff: "Orders and enquiries. Cannot change the catalogue." };
+  const PAGE = 20;
 
-  const S = { admin: null, products: [], categories: [], services: [], orders: [], inquiries: null, settings: {}, section: "dashboard",
-    pf: { q: "", cat: "", state: "" }, of: { q: "", status: "" }, qf: { status: "" } };
+  const S = { admin: null, products: [], categories: [], services: [], orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "",
+    pg: { products: 1, orders: 1, inquiries: 1, activity: 1 },
+    pf: { q: "", cat: "", state: "", sort: "newest" }, of: { q: "", status: "" }, qf: { status: "" } };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => [...(root || document).querySelectorAll(sel)];
@@ -107,6 +115,32 @@
     return { el: bg, close };
   }
 
+  const can = (id) => !S.admin || !ACCESS[S.admin.role] || ACCESS[S.admin.role].includes(id);
+  const isAdmin = () => !!S.admin && S.admin.role === "admin";
+
+  function pager(key, total) {
+    const pages = Math.max(1, Math.ceil(total / PAGE));
+    if (S.pg[key] > pages) S.pg[key] = pages;
+    const cur = S.pg[key];
+    const rows = (list) => list.slice((cur - 1) * PAGE, cur * PAGE);
+    const html = total <= PAGE
+      ? '<p class="muted small pager-note">' + total + (total === 1 ? " item" : " items") + "</p>"
+      : '<nav class="pager" aria-label="Pages"><button type="button" class="button button-outline button-sm" data-page="' + key + '" data-dir="-1"' + (cur <= 1 ? " disabled" : "") + '>Previous</button><span>Page ' + cur + " of " + pages + " · " + total + ' items</span><button type="button" class="button button-outline button-sm" data-page="' + key + '" data-dir="1"' + (cur >= pages ? " disabled" : "") + ">Next</button></nav>";
+    return { rows, html };
+  }
+
+  /* CSV with a leading BOM (Excel-friendly). Cells starting with = + - @ are prefixed so a spreadsheet never runs them as formulas. */
+  function downloadCsv(name, header, rows) {
+    const cell = (v) => { let t = String(v === null || v === undefined ? "" : v); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return '"' + t.replace(/"/g, '""') + '"'; };
+    const text = "\ufeff" + [header].concat(rows).map((r) => r.map(cell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = name + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  const csvBtn = (act) => '<button type="button" class="button button-outline" data-action="' + act + '">' + icon("download") + " Export CSV</button>";
+
   function busy(btn, on) { if (btn) { btn.disabled = on; btn.classList.toggle("is-loading", on); } }
 
   /* ── Data ───────────────────────────────────────────────────────── */
@@ -115,8 +149,8 @@
     const [cat, services, orders, inquiries, settings] = await Promise.all([
       SupabaseClient.fetchCatalog(),
       safe(SupabaseClient.fetchServices(), []),
-      safe(SupabaseClient.fetchOrders(), []),
-      safe(SupabaseClient.fetchInquiries(), null),
+      can("orders") ? safe(SupabaseClient.fetchOrders(), []) : [],
+      can("inquiries") ? safe(SupabaseClient.fetchInquiries(), null) : [],
       safe(SupabaseClient.fetchSettings(), {})
     ]);
     S.products = cat.products;
@@ -126,6 +160,7 @@
     S.inquiries = inquiries;
     S.settings = settings;
     await SupabaseClient.detectExtended().catch(() => {});
+    if (isAdmin()) S.audit = await safe(SupabaseClient.fetchAudit(300), null);
   }
 
   async function reload(what) {
@@ -135,6 +170,8 @@
       if (what === "orders") S.orders = await SupabaseClient.fetchOrders();
       if (what === "inquiries") S.inquiries = await SupabaseClient.fetchInquiries();
       if (what === "settings") S.settings = await SupabaseClient.fetchSettings();
+      if (what === "team") S.team = await SupabaseClient.fetchTeam();
+      if (what === "audit") S.audit = await SupabaseClient.fetchAudit(300);
     } catch (e) { fail(e, "Could not refresh data"); }
   }
 
@@ -144,7 +181,7 @@
   /* ── Shell ──────────────────────────────────────────────────────── */
   function renderNav() {
     const badge = { orders: newOrders(), inquiries: newInquiries() };
-    const make = (cls) => SECTIONS.map(([id, label, ic]) =>
+    const make = (cls) => SECTIONS.filter((x) => can(x[0])).map(([id, label, ic]) =>
       '<button type="button" class="nav-btn" data-nav="' + id + '"' + (S.section === id ? ' aria-current="page"' : "") + ">" + icon(ic) + "<span>" + label + "</span>" +
       (badge[id] ? '<span class="nav-badge">' + badge[id] + "</span>" : "") + "</button>").join("");
     $("#nav").innerHTML = make();
@@ -155,13 +192,14 @@
     const n = $("#notice");
     const msgs = [];
     if (!SupabaseClient.extended) msgs.push("The store upgrade is not installed in your database yet, so brand, SKU, sale price, extra photos and specifications are not saved. Run <strong>supabase-migration-v3-store.sql</strong> in the Supabase SQL editor.");
-    if (S.inquiries === null) msgs.push("Enquiries are not being stored yet — the same migration creates that table.");
+    if (S.inquiries === null && can("inquiries")) msgs.push("Enquiries are not being stored yet — the same migration creates that table.");
+    if (isAdmin() && S.audit === null) msgs.push("Roles, the activity log and team management are not installed yet. Run <strong>supabase-migration-v4-security.sql</strong> in the Supabase SQL editor.");
     n.hidden = !msgs.length;
     n.innerHTML = msgs.join("<br>");
   }
 
   function go(section) {
-    if (!SECTIONS.some((s) => s[0] === section)) section = "dashboard";
+    if (!SECTIONS.some((s) => s[0] === section) || !can(section)) section = "dashboard";
     S.section = section;
     if (location.hash !== "#" + section) history.replaceState(null, "", "#" + section);
     render();
@@ -177,7 +215,7 @@
     const actions = $("#page-actions");
     actions.innerHTML = "";
     const view = $("#view");
-    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, settings: viewSettings })[S.section](view, actions);
+    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, team: viewTeam, activity: viewActivity, settings: viewSettings })[S.section](view, actions);
   }
 
   /* ── Dashboard ──────────────────────────────────────────────────── */
@@ -188,16 +226,17 @@
     const value = S.orders.filter((o) => o.status !== "cancelled").reduce((a, o) => a + o.total, 0);
     const recent = S.orders.slice(0, 6);
     const attention = out.concat(low).slice(0, 8);
+    const desk = can("orders");
     view.innerHTML =
       '<div class="stats">' +
       stat("Products on sale", active.length, S.products.length - active.length + " hidden") +
-      stat("New orders", newOrders(), S.orders.length + " in total", newOrders() > 0) +
-      stat("New enquiries", S.inquiries === null ? "–" : newInquiries(), S.inquiries === null ? "not installed" : S.inquiries.length + " in total", newInquiries() > 0) +
+      (desk ? stat("New orders", newOrders(), S.orders.length + " in total", newOrders() > 0) +
+      stat("New enquiries", S.inquiries === null ? "–" : newInquiries(), S.inquiries === null ? "not installed" : S.inquiries.length + " in total", newInquiries() > 0) : "") +
       stat("Stock alerts", out.length + low.length, out.length + " sold out · " + low.length + " running low", out.length + low.length > 0) +
-      stat("Order value", money(value), "excluding cancelled") + "</div>" +
-      '<div class="cols"><section class="card"><div class="card-head"><h2>Latest orders</h2><button type="button" class="button button-outline button-sm" data-nav="orders">View all</button></div>' +
+      (desk ? stat("Order value", money(value), "excluding cancelled") : "") + "</div>" +
+      '<div class="cols">' + (!desk ? "" : '<section class="card"><div class="card-head"><h2>Latest orders</h2><button type="button" class="button button-outline button-sm" data-nav="orders">View all</button></div>' +
       (recent.length ? recent.map((o) => '<div class="list-row"><div><strong>' + esc(o.order_number || "#" + o.id) + "</strong> · " + esc(o.customer_name) + '<div class="muted small">' + esc(fmtDate(o.created_at)) + "</div></div><div>" + pill(o.status, ORDER_STATUS) + ' <strong class="num">' + money(o.total) + "</strong></div></div>").join("") : '<div class="empty">No orders yet. They appear here as soon as a customer checks out.</div>') +
-      '</section><section class="card"><div class="card-head"><h2>Needs attention</h2></div>' +
+      '</section>') + '<section class="card"><div class="card-head"><h2>Needs attention</h2></div>' +
       (attention.length ? attention.map((p) => '<div class="list-row"><span>' + esc(nm(p.name)) + '</span><span class="pill ' + (p.stock === 0 ? "red" : "amber") + '">' + (p.stock === 0 ? "Sold out" : p.stock + " left") + "</span></div>").join("") : '<div class="empty">Stock levels look fine.</div>') +
       "</section></div>";
     if (!S.products.length) view.insertAdjacentHTML("afterbegin", '<div class="card" style="margin-bottom:1.25rem"><div class="card-body"><strong>Start here:</strong> add your first category, then your first product. <button type="button" class="button button-sm" data-nav="products" style="margin-left:.5rem">Add products</button></div></div>');
@@ -213,7 +252,8 @@
   /* ── Products ───────────────────────────────────────────────────── */
   function filteredProducts() {
     const q = norm(S.pf.q);
-    return S.products.filter((p) => {
+    const sorters = { newest: null, name: (a, b) => nm(a.name).localeCompare(nm(b.name)), "price-asc": (a, b) => a.price - b.price, "price-desc": (a, b) => b.price - a.price, "stock-asc": (a, b) => a.stock - b.stock };
+    const out = S.products.filter((p) => {
       if (S.pf.cat && p.category !== S.pf.cat) return false;
       if (S.pf.state === "hidden" && p.available) return false;
       if (S.pf.state === "visible" && !p.available) return false;
@@ -222,27 +262,32 @@
       if (q && !norm([nm(p.name), p.name.sq, p.sku, p.brand, p.id].join(" ")).includes(q)) return false;
       return true;
     });
+    return sorters[S.pf.sort] ? out.slice().sort(sorters[S.pf.sort]) : out;
   }
   const catName = (id) => { const c = S.categories.find((x) => x.id === id); return c ? nm(c.name) : "—"; };
 
   function viewProducts(view, actions) {
-    actions.innerHTML = '<button type="button" class="button" data-action="new-product">' + icon("plus") + " Add product</button>";
+    actions.innerHTML = csvBtn("csv-products") + '<button type="button" class="button" data-action="new-product">' + icon("plus") + " Add product</button>";
     view.innerHTML =
       '<div class="toolbar"><input type="search" id="pf-q" placeholder="Search name, SKU, brand" value="' + esc(S.pf.q) + '" aria-label="Search products">' +
       '<select id="pf-cat" aria-label="Category"><option value="">All categories</option>' + S.categories.map((c) => '<option value="' + esc(c.id) + '"' + (S.pf.cat === c.id ? " selected" : "") + ">" + esc(nm(c.name)) + "</option>").join("") + "</select>" +
-      '<select id="pf-state" aria-label="Status">' + [["", "All statuses"], ["visible", "Visible"], ["hidden", "Hidden"], ["low", "Low stock"], ["out", "Sold out"]].map((o) => '<option value="' + o[0] + '"' + (S.pf.state === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select></div>" +
+      '<select id="pf-state" aria-label="Status">' + [["", "All statuses"], ["visible", "Visible"], ["hidden", "Hidden"], ["low", "Low stock"], ["out", "Sold out"]].map((o) => '<option value="' + o[0] + '"' + (S.pf.state === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select>" +
+      '<select id="pf-sort" aria-label="Sort by">' + [["newest", "Newest first"], ["name", "Name A–Z"], ["price-asc", "Price: low to high"], ["price-desc", "Price: high to low"], ["stock-asc", "Stock: lowest first"]].map((o) => '<option value="' + o[0] + '"' + (S.pf.sort === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select></div>" +
       '<div id="plist"></div>';
-    $("#pf-q").addEventListener("input", (e) => { S.pf.q = e.target.value; drawProductList(); });
-    $("#pf-cat").addEventListener("change", (e) => { S.pf.cat = e.target.value; drawProductList(); });
-    $("#pf-state").addEventListener("change", (e) => { S.pf.state = e.target.value; drawProductList(); });
+    $("#pf-q").addEventListener("input", (e) => { S.pf.q = e.target.value; S.pg.products = 1; drawProductList(); });
+    $("#pf-cat").addEventListener("change", (e) => { S.pf.cat = e.target.value; S.pg.products = 1; drawProductList(); });
+    $("#pf-state").addEventListener("change", (e) => { S.pf.state = e.target.value; S.pg.products = 1; drawProductList(); });
+    $("#pf-sort").addEventListener("change", (e) => { S.pf.sort = e.target.value; S.pg.products = 1; drawProductList(); });
     drawProductList();
   }
 
   function drawProductList() {
-    const list = filteredProducts();
+    const all = filteredProducts();
+    const pg = pager("products", all.length);
+    const list = pg.rows(all);
     const box = $("#plist");
     if (!box) return;
-    if (!list.length) {
+    if (!all.length) {
       box.innerHTML = '<div class="card"><div class="empty">' + (S.products.length ? "No products match these filters." : 'No products yet.<br><br><button type="button" class="button" data-action="new-product">' + icon("plus") + " Add your first product</button>") + "</div></div>";
       return;
     }
@@ -256,7 +301,7 @@
         '</td><td class="num">' + money(p.price, p.currency) + (p.compare_price ? '<br><small class="muted"><s>' + money(p.compare_price, p.currency) + "</s></small>" : "") + "</td><td>" + stockInput(p) + "</td><td>" + sw(p, "available", "Visible") + "</td><td>" + sw(p, "featured", "Featured") + "</td><td>" + acts(p) + "</td></tr>").join("") +
       "</tbody></table></div>" +
       '<div class="cards">' + list.map((p) => '<div class="m-card"><div class="top"><div class="cell-prod" style="min-width:0">' + thumb(p) + "<div><strong>" + esc(nm(p.name)) + "</strong><small>" + esc(catName(p.category)) + '</small></div></div><strong class="num">' + money(p.price, p.currency) + '</strong></div><div class="meta"><label>Stock ' + stockInput(p) + '</label><label class="check-line">' + sw(p, "available", "Visible") + 'Visible</label></div><div class="bottom"><label class="check-line">' + sw(p, "featured", "Featured") + "Featured</label>" + acts(p) + "</div></div>").join("") + "</div>" +
-      '<p class="muted small" style="margin-top:.75rem">' + list.length + " of " + S.products.length + " products</p>";
+      pg.html;
   }
 
   async function quickUpdate(id, fields) {
@@ -469,18 +514,20 @@
   }
 
   /* ── Orders ─────────────────────────────────────────────────────── */
-  function viewOrders(view) {
+  function viewOrders(view, actions) {
+    if (actions) actions.innerHTML = csvBtn("csv-orders");
     const q = norm(S.of.q);
-    const list = S.orders.filter((o) => (!S.of.status || o.status === S.of.status) && (!q || norm([o.order_number, o.id, o.customer_name, o.customer_phone, o.customer_email].join(" ")).includes(q)));
+    let list = S.orders.filter((o) => (!S.of.status || o.status === S.of.status) && (!q || norm([o.order_number, o.id, o.customer_name, o.customer_phone, o.customer_email].join(" ")).includes(q)));
     view.innerHTML = '<div class="toolbar"><input type="search" id="of-q" placeholder="Search order no., name, phone" value="' + esc(S.of.q) + '" aria-label="Search orders"><select id="of-s" aria-label="Status"><option value="">All statuses</option>' + ORDER_STATUS.map((s) => '<option value="' + s[0] + '"' + (S.of.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + '</select></div><div id="olist"></div>';
-    $("#of-q").addEventListener("input", (e) => { S.of.q = e.target.value; viewOrders(view); $("#of-q").focus(); $("#of-q").setSelectionRange(99, 99); });
-    $("#of-s").addEventListener("change", (e) => { S.of.status = e.target.value; viewOrders(view); });
+    $("#of-q").addEventListener("input", (e) => { S.of.q = e.target.value; S.pg.orders = 1; viewOrders(view); $("#of-q").focus(); $("#of-q").setSelectionRange(99, 99); });
+    $("#of-s").addEventListener("change", (e) => { S.of.status = e.target.value; S.pg.orders = 1; viewOrders(view); });
     const box = $("#olist");
     if (!list.length) { box.innerHTML = '<div class="card"><div class="empty">' + (S.orders.length ? "No orders match." : "No orders yet.") + "</div></div>"; return; }
     const items = (o) => o.items.reduce((a, i) => a + (i.qty || 0), 0);
+    const opg = pager("orders", list.length); const all = list; list = opg.rows(all);
     box.innerHTML = '<div class="table-wrap has-cards"><table class="data collapse"><thead><tr><th>Order</th><th>Customer</th><th>Date</th><th class="num">Items</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>' +
       list.map((o) => '<tr style="cursor:pointer" data-action="open-order" data-id="' + o.id + '" tabindex="0"><td><strong>' + esc(o.order_number || "#" + o.id) + "</strong></td><td>" + esc(o.customer_name) + '<br><small class="muted">' + esc(o.customer_phone) + "</small></td><td>" + esc(fmtDate(o.created_at)) + '</td><td class="num">' + items(o) + '</td><td class="num">' + money(o.total) + "</td><td>" + pill(o.status, ORDER_STATUS) + "</td></tr>").join("") + "</tbody></table></div>" +
-      '<div class="cards">' + list.map((o) => '<div class="m-card" data-action="open-order" data-id="' + o.id + '"><div class="top"><div><strong>' + esc(o.order_number || "#" + o.id) + "</strong><br>" + esc(o.customer_name) + "</div>" + pill(o.status, ORDER_STATUS) + '</div><div class="meta"><span>' + esc(fmtDate(o.created_at)) + "</span><span>" + items(o) + ' items</span></div><div class="bottom"><span class="muted small">' + esc(o.customer_phone) + "</span><strong>" + money(o.total) + "</strong></div></div>").join("") + "</div>";
+      '<div class="cards">' + list.map((o) => '<div class="m-card" data-action="open-order" data-id="' + o.id + '"><div class="top"><div><strong>' + esc(o.order_number || "#" + o.id) + "</strong><br>" + esc(o.customer_name) + "</div>" + pill(o.status, ORDER_STATUS) + '</div><div class="meta"><span>' + esc(fmtDate(o.created_at)) + "</span><span>" + items(o) + ' items</span></div><div class="bottom"><span class="muted small">' + esc(o.customer_phone) + "</span><strong>" + money(o.total) + "</strong></div></div>").join("") + "</div>" + opg.html;
   }
   function orderDetail(id) {
     const o = S.orders.find((x) => String(x.id) === String(id));
@@ -498,6 +545,7 @@
     $("#o-save", dr.el).addEventListener("click", async (ev) => {
       const status = $("#o-status", dr.el).value;
       if (status === o.status) { dr.close(); return; }
+      if (status === "cancelled" && !(await confirmBox("Cancel this order?", "The items go back into stock. You can set another status later, but stock will not be taken again.", "Cancel order", true))) return;
       busy(ev.currentTarget, true);
       try { await SupabaseClient.updateOrderStatus(o.id, status); ok("Order updated"); dr.close(); await Promise.all([reload("orders"), reload("catalog")]); render(); }
       catch (e) { fail(e, "Could not update the order"); busy(ev.currentTarget, false); }
@@ -505,18 +553,21 @@
   }
 
   /* ── Enquiries ──────────────────────────────────────────────────── */
-  function viewInquiries(view) {
+  function viewInquiries(view, actions) {
+    if (actions && S.inquiries) actions.innerHTML = csvBtn("csv-inquiries");
     if (S.inquiries === null) { view.innerHTML = '<div class="card"><div class="empty">The enquiries table is not installed yet.<br>Run <strong>supabase-migration-v3-store.sql</strong> in Supabase to start collecting contact-form and service requests here.</div></div>'; return; }
-    const list = S.inquiries.filter((q) => !S.qf.status || q.status === S.qf.status);
+    const all = S.inquiries.filter((q) => !S.qf.status || q.status === S.qf.status);
+    const qpg = pager("inquiries", all.length);
+    const list = qpg.rows(all);
     view.innerHTML = '<div class="toolbar"><select id="qf-s" aria-label="Status"><option value="">All statuses</option>' + INQ_STATUS.map((s) => '<option value="' + s[0] + '"' + (S.qf.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + '</select></div>';
-    $("#qf-s").addEventListener("change", (e) => { S.qf.status = e.target.value; viewInquiries(view); });
+    $("#qf-s").addEventListener("change", (e) => { S.qf.status = e.target.value; S.pg.inquiries = 1; viewInquiries(view); });
     if (!list.length) { view.insertAdjacentHTML("beforeend", '<div class="card"><div class="empty">No enquiries.</div></div>'); return; }
     const TYPE_LABEL = { contact: "Contact", service: "Service", support: "Support", quote: "Quote", consult: "Consultation", visit: "Site visit", product: "Product" };
     const typ = (q) => '<span class="pill ' + (q.type === "contact" ? "" : q.type === "support" ? "amber" : "blue") + '">' + esc(TYPE_LABEL[q.type] || q.type) + "</span>";
     view.insertAdjacentHTML("beforeend",
       '<div class="table-wrap has-cards"><table class="data collapse"><thead><tr><th>From</th><th>Type</th><th>Message</th><th>Date</th><th>Status</th></tr></thead><tbody>' +
       list.map((q) => '<tr style="cursor:pointer" data-action="open-inquiry" data-id="' + q.id + '" tabindex="0"><td><strong>' + esc(q.name) + '</strong><br><small class="muted">' + esc(q.phone || q.email) + "</small></td><td>" + typ(q) + (q.service ? "<br><small>" + esc(q.service) + "</small>" : "") + '</td><td style="max-width:340px">' + esc((q.message || "").slice(0, 110)) + "</td><td>" + esc(fmtDate(q.created_at)) + "</td><td>" + pill(q.status, INQ_STATUS) + "</td></tr>").join("") + "</tbody></table></div>" +
-      '<div class="cards">' + list.map((q) => '<div class="m-card" data-action="open-inquiry" data-id="' + q.id + '"><div class="top"><div><strong>' + esc(q.name) + "</strong><br>" + typ(q) + "</div>" + pill(q.status, INQ_STATUS) + '</div><div class="muted small">' + esc((q.message || "").slice(0, 120)) + '</div><div class="meta"><span>' + esc(fmtDate(q.created_at)) + "</span></div></div>").join("") + "</div>");
+      '<div class="cards">' + list.map((q) => '<div class="m-card" data-action="open-inquiry" data-id="' + q.id + '"><div class="top"><div><strong>' + esc(q.name) + "</strong><br>" + typ(q) + "</div>" + pill(q.status, INQ_STATUS) + '</div><div class="muted small">' + esc((q.message || "").slice(0, 120)) + '</div><div class="meta"><span>' + esc(fmtDate(q.created_at)) + "</span></div></div>").join("") + "</div>" + qpg.html);
   }
   function inquiryDetail(id) {
     const q = (S.inquiries || []).find((x) => String(x.id) === String(id));
@@ -543,11 +594,12 @@
   /* ── Settings ───────────────────────────────────────────────────── */
   function viewSettings(view) {
     const cfg = S.settings.shop_settings || {};
-    view.innerHTML = '<div class="settings-grid">' +
-      '<form class="card" id="set-shop" novalidate><div class="card-head"><h2>Delivery</h2></div><div class="card-body"><div class="form-row"><div class="form-group"><label for="st-fee">Delivery fee</label><input id="st-fee" inputmode="decimal" value="' + esc(cfg.shipping_fee ?? 0) + '"><div class="help">0 = free delivery.</div></div><div class="form-group"><label for="st-free">Free delivery over</label><input id="st-free" inputmode="decimal" value="' + esc(cfg.free_shipping_over ?? 0) + '"><div class="help">0 = no free-delivery threshold.</div></div></div><button type="submit" class="button">Save delivery settings</button></div></form>' +
-      '<form class="card" id="set-pass" novalidate><div class="card-head"><h2>Change password</h2></div><div class="card-body"><div class="form-group"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password" minlength="10"><div class="help">At least 10 characters.</div></div><div class="form-group"><label for="pw2">Repeat new password</label><input id="pw2" type="password" autocomplete="new-password"></div><button type="submit" class="button">Update password</button></div></form>' +
-      '<div class="card"><div class="card-head"><h2>Backup</h2></div><div class="card-body"><p class="muted" style="margin-top:0">Download a copy of your products, categories and services.</p><button type="button" class="button button-outline" data-action="export">Download backup (JSON)</button></div></div></div>';
-    $("#set-shop").addEventListener("submit", async (e) => {
+    const adm = isAdmin();
+    view.innerHTML = '<div class="settings-grid">' + (!adm ? "" :
+      '<form class="card" id="set-shop" novalidate><div class="card-head"><h2>Delivery</h2></div><div class="card-body"><div class="form-row"><div class="form-group"><label for="st-fee">Delivery fee</label><input id="st-fee" inputmode="decimal" value="' + esc(cfg.shipping_fee ?? 0) + '"><div class="help">0 = free delivery.</div></div><div class="form-group"><label for="st-free">Free delivery over</label><input id="st-free" inputmode="decimal" value="' + esc(cfg.free_shipping_over ?? 0) + '"><div class="help">0 = no free-delivery threshold.</div></div></div><button type="submit" class="button">Save delivery settings</button></div></form>') +
+      '<form class="card" id="set-pass" novalidate><div class="card-head"><h2>Change password</h2></div><div class="card-body"><div class="form-group"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password" minlength="10"><div class="help">At least 10 characters.</div></div><div class="form-group"><label for="pw2">Repeat new password</label><input id="pw2" type="password" autocomplete="new-password"></div><button type="submit" class="button">Update password</button></div></form>' + (!adm ? "" :
+      '<div class="card"><div class="card-head"><h2>Backup</h2></div><div class="card-body"><p class="muted" style="margin-top:0">Download a copy of your products, categories and services.</p><button type="button" class="button button-outline" data-action="export">Download backup (JSON)</button><p class="muted small" style="margin-bottom:0">Covers products, categories and services. Orders and enquiries are backed up with the database itself (see README → Backups).</p></div></div>') + '</div>';
+    if (adm) $("#set-shop").addEventListener("submit", async (e) => {
       e.preventDefault();
       const fee = num($("#st-fee").value || "0"), free = num($("#st-free").value || "0");
       if (!(fee >= 0) || !(free >= 0)) { toast("error", "Enter valid amounts"); return; }
@@ -567,6 +619,56 @@
       if (r.success) { ok("Password updated"); e.target.reset(); } else toast("error", r.error || "Could not update the password");
     });
   }
+  /* ── Team (admin only) ──────────────────────────────────────────── */
+  async function viewTeam(view) {
+    view.innerHTML = '<div class="empty">Loading…</div>';
+    await reload("team");
+    if (S.section !== "team") return;
+    const me = S.admin.id;
+    const roleSel = (m) => '<select data-role-for="' + esc(m.id) + '" aria-label="Role for ' + esc(m.email) + '"' + (m.id === me ? " disabled" : "") + ">" + Object.keys(ROLE_LABEL).map((r) => '<option value="' + r + '"' + (m.role === r ? " selected" : "") + ">" + ROLE_LABEL[r] + "</option>").join("") + "</select>";
+    view.innerHTML =
+      '<div class="cols"><section class="card"><div class="card-head"><h2>Who has access</h2></div><div class="table-wrap"><table class="data"><thead><tr><th>Person</th><th>Role</th><th></th></tr></thead><tbody>' +
+      S.team.map((m) => "<tr><td><strong>" + esc(m.full_name || m.email) + (m.id === me ? ' <span class="pill">You</span>' : "") + "</strong><br><small class=\"muted\">" + esc(m.email) + "</small></td><td>" + roleSel(m) + "</td><td>" + (m.id === me ? "" : '<button type="button" class="icon-btn danger" data-action="del-member" data-id="' + esc(m.id) + '" aria-label="Remove ' + esc(m.email) + '">' + icon("trash") + "</button>") + "</td></tr>").join("") +
+      '</tbody></table></div></section><section class="card"><div class="card-head"><h2>Add a team member</h2></div><form class="card-body" id="member-form" novalidate>' +
+      '<p class="muted small" style="margin-top:0">1. In Supabase open <strong>Authentication → Users → Add user</strong> and create their login (email and a strong password).<br>2. Enter the same email here and choose what they may do.</p>' +
+      '<div class="form-group"><label for="m-email">Email</label><input id="m-email" type="email" autocomplete="off" required></div>' +
+      '<div class="form-group"><label for="m-name">Name <span class="muted">(optional)</span></label><input id="m-name" autocomplete="off"></div>' +
+      '<div class="form-group"><label for="m-role">Role</label><select id="m-role">' + Object.keys(ROLE_LABEL).map((r) => '<option value="' + r + '"' + (r === "staff" ? " selected" : "") + ">" + ROLE_LABEL[r] + "</option>").join("") + "</select></div>" +
+      '<button type="submit" class="button">Add member</button></form>' +
+      '<div class="card-body" style="border-top:1px solid var(--c-line)"><strong>What each role can do</strong><ul class="role-list">' + Object.keys(ROLE_LABEL).map((r) => "<li><strong>" + ROLE_LABEL[r] + ":</strong> " + esc(ROLE_HELP[r]) + "</li>").join("") + "</ul></div></section></div>";
+    $("#member-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = $("#m-email").value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast("error", "Enter a valid email address"); return; }
+      const b = $("button", e.target); busy(b, true);
+      try { await SupabaseClient.addTeamMember(email, $("#m-role").value, $("#m-name").value.trim()); ok("Team member added"); viewTeam(view); }
+      catch (err) { fail(err, "Could not add the member"); busy(b, false); }
+    });
+  }
+
+  /* ── Activity log (admin only) ──────────────────────────────────── */
+  async function viewActivity(view, actions) {
+    if (S.audit === null) { view.innerHTML = '<div class="card"><div class="empty">The activity log is not installed yet.<br>Run <strong>supabase-migration-v4-security.sql</strong> in Supabase.</div></div>'; return; }
+    view.innerHTML = '<div class="empty">Loading…</div>';
+    await reload("audit");
+    if (S.section !== "activity") return;
+    if (S.audit === null) { viewActivity(view, actions); return; }
+    const rowsAll = S.audit.filter((r) => !S.auditTable || r.table_name === S.auditTable);
+    actions.innerHTML = csvBtn("csv-activity");
+    const tables = [...new Set(S.audit.map((r) => r.table_name))].sort();
+    const apg = pager("activity", rowsAll.length);
+    const rows = apg.rows(rowsAll);
+    const what = (r) => {
+      const o = r.old_data || {}, n = r.new_data || {};
+      if (r.action === "UPDATE") { const ch = Object.keys(n).filter((k) => JSON.stringify(n[k]) !== JSON.stringify(o[k])); return "Changed " + (ch.join(", ") || "—"); }
+      return r.action === "INSERT" ? "Created" : "Deleted";
+    };
+    view.innerHTML = '<div class="toolbar"><select id="au-t" aria-label="Filter by area"><option value="">All areas</option>' + tables.map((t) => '<option value="' + esc(t) + '"' + (S.auditTable === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>" +
+      (rows.length ? '<div class="table-wrap"><table class="data"><thead><tr><th>When</th><th>Who</th><th>Area</th><th>Item</th><th>What</th></tr></thead><tbody>' +
+        rows.map((r) => "<tr><td>" + esc(fmtDate(r.at)) + "</td><td>" + esc(r.actor_email || "Visitor / system") + "</td><td>" + esc(r.table_name) + "</td><td>" + esc(r.row_id) + "</td><td>" + esc(what(r)) + "</td></tr>").join("") + "</tbody></table></div>" : '<div class="card"><div class="empty">Nothing recorded yet.</div></div>') + apg.html;
+    $("#au-t").addEventListener("change", (e) => { S.auditTable = e.target.value; S.pg.activity = 1; viewActivity(view, actions); });
+  }
+
   function exportBackup() {
     const data = { exported_at: new Date().toISOString(), categories: S.categories, products: S.products, services: S.services };
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
@@ -576,10 +678,19 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  async function removeMember(id) {
+    const m = S.team.find((x) => x.id === id);
+    if (!m) return;
+    if (!(await confirmBox("Remove " + m.email + "?", "They lose access to the admin straight away. Their login stays in Supabase and can be re-added later.", "Remove", true))) return;
+    try { await SupabaseClient.removeTeamMember(id); ok("Removed"); render(); } catch (err) { fail(err, "Could not remove the member"); }
+  }
+
   /* ── Events ─────────────────────────────────────────────────────── */
   document.addEventListener("click", (e) => {
     const nav = e.target.closest("[data-nav]");
     if (nav) { go(nav.dataset.nav); return; }
+    const pg = e.target.closest("[data-page]");
+    if (pg && !pg.disabled) { S.pg[pg.dataset.page] += parseInt(pg.dataset.dir, 10); render(); window.scrollTo(0, 0); return; }
     const a = e.target.closest("[data-action]");
     if (!a) return;
     const id = a.dataset.id;
@@ -597,6 +708,14 @@
       case "open-order": orderDetail(id); break;
       case "open-inquiry": inquiryDetail(id); break;
       case "export": exportBackup(); break;
+      case "csv-products": downloadCsv("subcore-products", ["ID", "Name (EN)", "Name (SQ)", "Category", "Brand", "SKU", "Price", "Compare price", "Currency", "Stock", "Visible", "Featured"],
+        filteredProducts().map((p) => [p.id, p.name.en, p.name.sq, catName(p.category), p.brand, p.sku, p.price, p.compare_price, p.currency, p.stock, p.available ? "yes" : "no", p.featured ? "yes" : "no"])); break;
+      case "csv-orders": downloadCsv("subcore-orders", ["Order", "Date", "Customer", "Phone", "Email", "Address", "Items", "Delivery", "Total", "Status"],
+        S.orders.map((o) => [o.order_number || o.id, o.created_at, o.customer_name, o.customer_phone, o.customer_email, o.delivery_address, o.items.map((i) => (i.qty || 0) + "x " + (nm(i.name) || i.id)).join("; "), o.shipping || 0, o.total, o.status])); break;
+      case "csv-inquiries": downloadCsv("subcore-enquiries", ["Date", "Type", "Name", "Phone", "Email", "Service", "Message", "Status"],
+        (S.inquiries || []).map((q) => [q.created_at, q.type, q.name, q.phone, q.email, q.service, q.message, q.status])); break;
+      case "csv-activity": downloadCsv("subcore-activity", ["When", "Who", "Action", "Area", "Item"], (S.audit || []).map((r) => [r.at, r.actor_email || "system", r.action, r.table_name, r.row_id])); break;
+      case "del-member": removeMember(id); break;
     }
   });
   document.addEventListener("keydown", (e) => {
@@ -604,7 +723,12 @@
   });
   document.addEventListener("change", async (e) => {
     const t = e.target;
-    if (t.matches("[data-toggle]")) {
+    if (t.matches("[data-role-for]")) {
+      const m = S.team.find((x) => x.id === t.dataset.roleFor);
+      if (!m || m.role === t.value) return;
+      if (!(await confirmBox("Change role?", m.email + " will become " + ROLE_LABEL[t.value] + ". " + ROLE_HELP[t.value], "Change role", false))) { t.value = m.role; return; }
+      try { await SupabaseClient.setTeamRole(m.id, t.value); m.role = t.value; ok("Role updated"); } catch (err) { fail(err, "Could not change the role"); t.value = m.role; }
+    } else if (t.matches("[data-toggle]")) {
       await quickUpdate(t.dataset.id, { [t.dataset.toggle]: t.checked });
       $$('[data-toggle="' + t.dataset.toggle + '"][data-id="' + CSS.escape(t.dataset.id) + '"]').forEach((x) => { x.checked = t.checked; });
     } else if (t.matches("[data-stock]")) {
@@ -623,7 +747,7 @@
     S.admin = admin;
     $("#login").hidden = true;
     $("#app").hidden = false;
-    $("#who").textContent = admin.full_name || admin.email;
+    $("#who").textContent = (admin.full_name || admin.email) + " · " + (ROLE_LABEL[admin.role] || admin.role);
     $("#view").innerHTML = '<div class="empty">Loading…</div>';
     try { await loadAll(); } catch (e) { fail(e, "Could not load data"); }
     go((location.hash || "").slice(1) || "dashboard");

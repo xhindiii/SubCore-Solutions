@@ -372,6 +372,42 @@ const SupabaseClient = {
     this._check(error);
   },
 
+  /* ── Admin: team & activity (admin role only; also enforced by RLS) ── */
+  async fetchTeam() {
+    this._need();
+    const { data, error } = await sb.from("admin_users").select("id, email, full_name, role, created_at").order("created_at", { ascending: true });
+    this._check(error);
+    return data;
+  },
+
+  async addTeamMember(email, role, name) {
+    this._need();
+    const { error } = await sb.rpc("admin_add_member", { p_email: email, p_role: role, p_name: name || null });
+    this._check(error);
+  },
+
+  async setTeamRole(id, role) {
+    this._need();
+    const { data, error } = await sb.from("admin_users").update({ role }).eq("id", id).select("id");
+    this._check(error);
+    if (!data || !data.length) throw new Error("Not allowed");
+  },
+
+  async removeTeamMember(id) {
+    this._need();
+    const { data, error } = await sb.from("admin_users").delete().eq("id", id).select("id");
+    this._check(error);
+    if (!data || !data.length) throw new Error("Not allowed");
+  },
+
+  async fetchAudit(limit) {
+    this._need();
+    const { data, error } = await sb.from("audit_log").select("*").order("at", { ascending: false }).limit(limit || 300);
+    if (error && isMissingSchema(error)) return null; // v4 migration not installed
+    this._check(error);
+    return data;
+  },
+
   async upsertSetting(key, value) {
     this._need();
     const { data, error } = await sb.from("website_settings").upsert({ key, value }).select();

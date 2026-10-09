@@ -13,7 +13,7 @@
 
 /* shell */
 .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
-.side { background: #0f1f33; color: #c9d4e0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.side { background: #18252d; color: #c9d4e0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
 .side-brand { padding: 1.25rem 1.25rem 1rem; }
 .side-nav { display: flex; flex-direction: column; gap: 2px; padding: 0.5rem 0.75rem; flex: 1; overflow-y: auto; }
 .nav-btn { display: flex; align-items: center; gap: 0.7rem; width: 100%; padding: 0.6rem 0.75rem; border: 0; border-radius: 8px; background: none; color: inherit; font: 500 0.92rem var(--font); cursor: pointer; text-align: left; }
@@ -167,3 +167,9 @@ td .switch { vertical-align: middle; }
 .status-select[data-stock] { min-height: 36px; width: 76px; padding: 0.3rem 0.5rem; }
 
 .login-brand { background: #18252d; margin: -2rem -2rem 0.5rem; padding: 1.25rem; border-radius: 12px 12px 0 0; display: grid; place-items: center; }
+
+.pager { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; font-size: 0.875rem; color: var(--c-muted); flex-wrap: wrap; }
+.pager-note { margin-top: 0.75rem; }
+.role-list { margin: 0.5rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; font-size: 0.875rem; }
+.data select { height: 36px; padding: 0 0.5rem; border: 1px solid var(--c-line); border-radius: 6px; background: #fff; font: inherit; }
+.page-actions .button, #page-actions .button { white-space: nowrap; }

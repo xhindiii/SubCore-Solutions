@@ -93,7 +93,7 @@ DROP FUNCTION IF EXISTS verify_admin_password(TEXT, TEXT);
 -- MANUAL STEPS YOU STILL NEED TO DO IN THE SUPABASE DASHBOARD:
 --
 -- 1. Go to Authentication → Users → "Add user" and create a user with your
---    real admin email and a strong new password (NOT "Localadmin!" — that
+--    real admin email and a strong new password (NOT the old default password — that
 --    password is public in your GitHub history and must be treated as
 --    burned regardless of anything else you do).
 --

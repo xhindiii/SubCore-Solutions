@@ -1,10 +1,14 @@
+-- ############################################################################
+-- DEPRECATED — DO NOT RUN. Kept only for reference. Superseded by
+-- supabase-schema-fresh-install.sql (+ v3, v4 migrations).
+-- ############################################################################
 -- SubCore Solutions Complete Schema
 -- ============================================================================
 -- ⚠️ SUPERSEDED — DO NOT RE-RUN THIS FILE ON YOUR LIVE PROJECT.
 -- This is the ORIGINAL schema, kept only for historical reference. It
 -- contains RLS policies ("USING (true)") that allow anyone with the public
 -- anon key to write/delete all data, and a hardcoded default password
--- ('Localadmin!') for the admin account.
+-- (a fixed default) for the admin account.
 --
 -- Your live database should be running supabase-schema-v2-SECURITY-FIX.sql
 -- instead, and the admin account should be a real Supabase Auth user (see
@@ -121,17 +125,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Insert default admin user (password: Localadmin!)
--- Using crypt() with gen_salt() for proper password hashing
-INSERT INTO admin_users (email, password_hash, full_name, role)
-VALUES (
-  'info.subcoresolutions@gmail.com',
-  crypt('Localadmin!', gen_salt('bf')),
-  'Admin User',
-  'admin'
-)
-ON CONFLICT (email) DO UPDATE SET
-  password_hash = crypt('Localadmin!', gen_salt('bf'));
+-- (Removed) This file used to seed an admin account with a fixed password. That seed was
+-- deleted because a published password is a security hole. Do NOT use this file: use
+-- supabase-schema-fresh-install.sql, then the v3 and v4 migrations.
 
 -- Insert default website settings
 INSERT INTO website_settings (key, value) VALUES

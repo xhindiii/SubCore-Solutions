@@ -19,7 +19,7 @@ Supabase REST API. The admin login screen never actually gated this; it just
 set a value in `sessionStorage`; it didn't and couldn't restrict what the
 database itself allowed.
 
-On top of that, the default admin password (`Localadmin!`) was hardcoded in
+On top of that, the default admin password (the old default) was hardcoded in
 the schema file, and the change-password feature in the admin panel was a
 stub that didn't do anything.
 
@@ -43,7 +43,7 @@ It's safe to run once; re-running it is also safe (it uses `IF NOT EXISTS` /
 ### 2. Create a real admin login
 
 **⚠️ Before you do this:** the request was to configure the account with
-email `info.subcoresolutions@gmail.com` and password `Localadmin!`. That's
+email `info.subcoresolutions@gmail.com` and password the old default password. That's
 fine to set up functionally — the steps below do it — but flagging clearly:
 this exact password was the **hardcoded default in the original, public
 `supabase-schema.sql`** (see the warning banner now at the top of that
@@ -56,7 +56,7 @@ successful login — the in-panel "Change Password" form now actually works.
 
 Go to **Authentication → Users → Add user** and create:
 - Email: `info.subcoresolutions@gmail.com`
-- Password: `Localadmin!` (or, better, a fresh password only you know)
+- Password: a fresh, long password that only you know (never reuse the old default)
 - Leave "Auto Confirm User" checked so no email-verification step blocks login.
 
 ### 3. Link that new auth user to your admin profile
