@@ -445,8 +445,8 @@
         const name = escapeHtml(productName(p));
         const img = productImage(p);
         return '<div class="cart-item" data-id="' + escapeHtml(p.id) + '">' +
-          '<a class="cart-thumb" href="' + productUrl(p) + '">' + (img ? '<img src="' + escapeHtml(img) + '" alt="' + name + '" data-fallback>' : placeholderBox()) + "</a>" +
-          "<div><h3><a href=\"" + productUrl(p) + '">' + name + '</a></h3><div class="unit">' + money(p.price, p.currency) + " " + escapeHtml(tr("cart.each")) + "</div>" +
+          '<a class="cart-thumb" aria-label="' + name + '" href="' + productUrl(p) + '">' + (img ? '<img src="' + escapeHtml(img) + '" alt="' + name + '" data-fallback>' : placeholderBox()) + "</a>" +
+          "<div><h2><a href=\"" + productUrl(p) + '">' + name + '</a></h2><div class="unit">' + money(p.price, p.currency) + " " + escapeHtml(tr("cart.each")) + "</div>" +
             '<div class="item-controls"><div class="qty" role="group" aria-label="' + escapeHtml(tr("shop.quantity")) + '">' +
               '<button type="button" data-act="minus" aria-label="−"' + (qty <= 1 ? " disabled" : "") + ">" + icon("minus") + '</button><input type="number" data-act="input" value="' + qty + '" min="1" max="' + p.stock + '" inputmode="numeric" aria-label="' + escapeHtml(tr("shop.quantity")) + '">' +
               '<button type="button" data-act="plus" aria-label="+"' + (qty >= p.stock ? " disabled" : "") + ">" + icon("plus") + "</button></div>" +
