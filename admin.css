@@ -165,3 +165,5 @@ table.data tbody tr:hover { background: #fafbfc; }
 .status-select { width: auto; }
 td .switch { vertical-align: middle; }
 .status-select[data-stock] { min-height: 36px; width: 76px; padding: 0.3rem 0.5rem; }
+
+.login-brand { background: #18252d; margin: -2rem -2rem 0.5rem; padding: 1.25rem; border-radius: 12px 12px 0 0; display: grid; place-items: center; }

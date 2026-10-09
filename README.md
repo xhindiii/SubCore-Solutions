@@ -50,7 +50,7 @@ Page copy lives in `translations.js` and `translations-extra.js` (both languages
 
 ## Brand
 
-Deep teal `#0a1920` / `#0e2229`, soft cyan `#7eb8c9`, teal `#176f86` for buttons on light pages. Logo files: `logo-compact.svg` (light backgrounds), `logo-compact-light.svg` (dark backgrounds), `logo-mark.svg`, `favicon.svg`/`.ico`, `apple-touch-icon.png`, `og-image.png` (social sharing). Text in the logos is converted to outlines, so it looks the same on every device.
+Palette is derived from the supplied logo: slate `#18252d` (logo background), `#1e2f38`, muted blue-grey `#78909a` (logo subtitle), soft cyan `#7eb8c9` as accent, teal `#176f86` for buttons on light pages. The logo is the original artwork supplied by the owner (`brand/logo-original.png`); `logo.png`/`logo-1x.png` are transparent crops of it for dark surfaces, `icon-*.png`/`favicon.*` use its "S" glyph. `logo.svg` is the legacy text-based file and is not used by the pages. Decorative network/circuit backgrounds are in `img/`.
 
 ## Before launch
 

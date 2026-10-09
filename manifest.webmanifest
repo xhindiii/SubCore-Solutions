@@ -3,8 +3,8 @@
   "short_name": "SubCore",
   "start_url": "/index.html",
   "display": "browser",
-  "background_color": "#0a1920",
-  "theme_color": "#0a1920",
+  "background_color": "#18252d",
+  "theme_color": "#18252d",
   "icons": [
     {
       "src": "icon-192.png",
@@ -15,11 +15,6 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
     }
   ]
 }
