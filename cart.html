@@ -2,86 +2,104 @@
 <html lang="sq">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Shopping cart - SubCore Solutions Shop">
-<meta name="robots" content="noindex, follow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-sq="Shporta — SubCore Solutions" data-en="Cart — SubCore Solutions">Shporta — SubCore Solutions</title>
+<meta name="description" content="Shporta juaj e blerjeve.">
+<meta name="robots" content="noindex">
 <link rel="canonical" href="https://subcoresolutions.online/cart.html">
-<title>Cart - SubCore Solutions</title>
-<link rel="icon" type="image/x-icon" href="favicon.ico">
+<meta property="og:site_name" content="SubCore Solutions">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Shporta — SubCore Solutions">
+<meta property="og:description" content="Shporta juaj e blerjeve.">
+<meta property="og:url" content="https://subcoresolutions.online/cart.html">
+<meta name="theme-color" content="#0b3b66">
+<link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
-<body data-page="cart">
-
-<a href="#main-content" class="skip-link">Skip to main content</a>
-
-<header>
-  <a href="index.html" class="logo-link"><img src="logo-compact.svg" class="logo" alt="SubCore Solutions" width="140" height="28"></a>
-  <nav>
+<body>
+<a href="#main" class="skip-link" data-i18n="nav.skip">Kalo te përmbajtja</a>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html"><img src="logo-compact.svg" alt="SubCore Solutions" width="178" height="28"></a>
+    <nav id="site-nav" aria-label="Main">
     <a href="index.html" data-i18n="nav.home">Kryefaqja</a>
-    <a href="index.html#services" data-i18n="nav.services">Shërbimet</a>
-    <a href="index.html#pricing" data-i18n="nav.pricing">Çmimet</a>
-    <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
-    <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
+    <a href="services.html" data-i18n="nav.services">Shërbimet</a>
+    <a href="shop.html" class="active" aria-current="page" data-i18n="nav.shop">Dyqani</a>
     <a href="students.html" data-i18n="nav.students">Studentë</a>
+    <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
     <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
-  </nav>
-  <div class="header-actions">
-    <div class="lang-switcher">
-      <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">ALB</button>
-      <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">ENG</button>
+    <a class="nav-cta button" href="contact.html" data-i18n="nav.quote">Kërko ofertë</a>
+      <div class="lang-switcher lang-switcher-mobile" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+    <div class="header-actions">
+      <div class="lang-switcher" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <a href="cart.html" class="cart-link" data-i18n-aria="shop.cart" aria-label="Shporta"><svg class="icon icon-lg" aria-hidden="true"><use href="icons.svg#cart"/></svg><span class="cart-count" aria-live="polite">0</span></a>
+      <a href="contact.html" class="button button-sm header-cta" data-i18n="nav.quote">Kërko ofertë</a>
+      <button type="button" class="menu-toggle" aria-controls="site-nav" aria-expanded="false" data-i18n-aria="nav.menu" aria-label="Menuja"><span></span><span></span><span></span></button>
     </div>
-    <a href="cart.html" class="cart-link" data-i18n-aria="shop.cart" aria-label="Shporta">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="cart-count">0</span>
-    </a>
-    <button type="button" class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
   </div>
   <div class="nav-overlay" aria-hidden="true"></div>
 </header>
-
-<section class="section" style="padding-top: calc(var(--header-height) + 2rem);">
-  <nav class="breadcrumb fade-in" aria-label="Breadcrumb">
-    <a href="shop.html" data-i18n="shop.breadcrumb.shop">Shop</a> / <span data-i18n="shop.breadcrumb.cart">Cart</span>
-  </nav>
-  <h1 class="fade-in" data-i18n="shop.cart" style="margin-bottom:2rem;">Shopping Cart</h1>
-
-  <div id="cart-content"></div>
-  <div class="empty-state" id="cart-empty" hidden>
-    <h3 data-i18n="shop.cartEmpty">Your cart is empty</h3>
-    <p data-i18n="shop.cartEmptyDesc">Browse our shop and add products to get started.</p>
-    <a href="shop.html" class="button" data-i18n="shop.continueShopping">Continue Shopping</a>
-  </div>
-</section>
-
-<footer>
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <a href="index.html"><img src="logo-compact.svg" class="logo" alt="SubCore Solutions"></a>
-      <p data-i18n="footer.tagline">Professional IT infrastructure, networking, and support for businesses across Albania.</p>
+<main id="main">
+<section class="page-header"><div class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html" data-i18n="nav.home">Kryefaqja</a><span class="sep">/</span><a href="shop.html" data-i18n="nav.shop">Dyqani</a><span class="sep">/</span><span data-i18n="shop.breadcrumb.cart">Shporta</span></nav>
+  <h1 data-i18n="cart.title">Shporta juaj</h1>
+</div></section>
+<div class="container">
+  <div id="cart-content"><div class="loading-state"><div class="loading-spinner"></div></div></div>
+  <div class="empty-state" id="cart-empty" hidden><svg class="icon " aria-hidden="true"><use href="icons.svg#cart"/></svg><h3 data-i18n="shop.cartEmpty">Shporta juaj është bosh</h3><p data-i18n="shop.cartEmptyDesc">Shfletoni dyqanin tonë dhe shtoni produkte.</p><a href="shop.html" class="button" data-i18n="shop.continueShopping">Vazhdo Blerjet</a></div>
+</div>
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="logo-compact-light.svg" alt="SubCore Solutions" width="178" height="28">
+        <p data-i18n="footer.tagline">Infrastrukturë IT profesionale, rrjete dhe mbështetje për biznese në të gjithë Shqipërinë.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.services">Shërbimet</h4>
+        <a href="services.html#server" data-i18n="services.server.title">Server &amp; Infrastrukturë</a>
+        <a href="services.html#networking" data-i18n="services.networking.title">Zgjidhje Rrjeti</a>
+        <a href="services.html#security" data-i18n="services.security.title">Siguri Kibernetike &amp; Backup</a>
+        <a href="services.html#webdev" data-i18n="services.webdev.title">Zhvillim Website</a>
+        <a href="services.html#pricing" data-i18n="nav.pricing">Çmimet</a>
+      </div>
+      <div>
+        <h4 data-i18n="footer.company">Kompania</h4>
+        <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
+        <a href="students.html" data-i18n="nav.students">Studentë</a>
+        <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
+        <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
+      </div>
+      <div class="footer-contact">
+        <h4 data-i18n="footer.contact">Kontakt</h4>
+        <a href="mailto:info@subcoresolutions.online"><svg class="icon " aria-hidden="true"><use href="icons.svg#mail"/></svg>info@subcoresolutions.online</a>
+        <a href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg>+355 68 666 1686</a>
+        <a href="https://wa.me/355686661686" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg>WhatsApp</a>
+        <a href="https://instagram.com/subcore_solutions" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#instagram"/></svg>Instagram</a>
+      </div>
     </div>
-    <div class="footer-col">
-      <h4 data-i18n="footer.links">Quick Links</h4>
-      <a href="shop.html" data-i18n="nav.shop">Shop</a>
-      <a href="contact.html" data-i18n="nav.contact">Contact</a>
+    <div class="footer-bottom">
+      <span data-i18n="footer.rights">© 2026 SubCore Solutions</span>
+      <span data-i18n="footer.hours">Mbështetje në distancë dhe në vend</span>
     </div>
-    <div class="footer-col">
-      <h4 data-i18n="footer.contact">Contact</h4>
-      <a href="mailto:info@subcoresolutions.online">info@subcoresolutions.online</a>
-      <a href="tel:+355686661686">+355 68 666 1686</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p><span data-i18n="footer.rights">© 2026 SubCore Solutions</span></p>
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<a href="https://wa.me/355686661686" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg></a>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" defer></script>
 <script src="translations.js" defer></script>
+<script src="translations-extra.js" defer></script>
 <script src="supabase-client.js" defer></script>
 <script src="shop-core.js" defer></script>
 <script src="scripts.js" defer></script>

@@ -3,19 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title data-sq="Dyqani — pajisje IT &amp; aksesorë | SubCore Solutions" data-en="Shop — IT equipment &amp; accessories | SubCore Solutions">Dyqani — pajisje IT &amp; aksesorë | SubCore Solutions</title>
-<meta name="description" content="Hardware, pajisje rrjeti, software dhe aksesorë IT me filtra sipas kategorisë, markës dhe çmimit. Porosi me pagesë në dorëzim.">
-<link rel="canonical" href="https://subcoresolutions.online/shop.html">
+<title data-sq="Faqja nuk u gjet — SubCore Solutions" data-en="Page not found — SubCore Solutions">Faqja nuk u gjet — SubCore Solutions</title>
+<meta name="description" content="Faqja nuk u gjet.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://subcoresolutions.online/404.html">
 <meta property="og:site_name" content="SubCore Solutions">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Dyqani — pajisje IT &amp; aksesorë | SubCore Solutions">
-<meta property="og:description" content="Hardware, pajisje rrjeti, software dhe aksesorë IT me filtra sipas kategorisë, markës dhe çmimit. Porosi me pagesë në dorëzim.">
-<meta property="og:url" content="https://subcoresolutions.online/shop.html">
+<meta property="og:title" content="Faqja nuk u gjet — SubCore Solutions">
+<meta property="og:description" content="Faqja nuk u gjet.">
+<meta property="og:url" content="https://subcoresolutions.online/404.html">
 <meta name="theme-color" content="#0b3b66">
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<base href="/">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,7 +28,7 @@
     <nav id="site-nav" aria-label="Main">
     <a href="index.html" data-i18n="nav.home">Kryefaqja</a>
     <a href="services.html" data-i18n="nav.services">Shërbimet</a>
-    <a href="shop.html" class="active" aria-current="page" data-i18n="nav.shop">Dyqani</a>
+    <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
     <a href="students.html" data-i18n="nav.students">Studentë</a>
     <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
     <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
@@ -49,41 +51,7 @@
   <div class="nav-overlay" aria-hidden="true"></div>
 </header>
 <main id="main">
-<section class="page-header"><div class="container">
-  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html" data-i18n="nav.home">Kryefaqja</a><span class="sep">/</span><span data-i18n="nav.shop">Dyqani</span></nav>
-  <h1 data-i18n="shop.hero.title">Dyqani</h1>
-  <p class="lead" data-i18n="shop.hero.subtitle">Hardware, pajisje rrjeti, software dhe aksesorë — me ndihmë konfigurimi nga ekipi ynë.</p>
-</div></section>
-<div class="container shop-layout">
-  <aside class="filters" id="filters" aria-label="Filters">
-    <div class="filters-head"><h2 data-i18n="shop.filters">Filtra</h2><button type="button" class="link-btn" id="clear-filters" data-i18n="shop.clearAll">Pastro të gjitha</button><button type="button" class="drawer-close" id="drawer-close" data-i18n-aria="common.close" aria-label="Mbyll"><svg class="icon " aria-hidden="true"><use href="icons.svg#x"/></svg></button></div>
-    <div class="filters-scroll" id="filter-groups"></div>
-    <div class="filter-actions">
-      <button type="button" class="button button-outline" id="drawer-clear" data-i18n="shop.clearAll">Pastro të gjitha</button>
-      <button type="button" class="button" id="drawer-apply"></button>
-    </div>
-  </aside>
-  <div class="drawer-backdrop" id="drawer-backdrop"></div>
-  <div class="shop-main">
-    <div class="shop-toolbar">
-      <div class="search-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#search"/></svg><input type="search" id="shop-search" data-i18n-placeholder="shop.search" placeholder="Kërko produkte" autocomplete="off"></div>
-      <button type="button" class="button button-outline filter-toggle" id="filter-toggle"><svg class="icon " aria-hidden="true"><use href="icons.svg#filter"/></svg><span data-i18n="shop.filters">Filtra</span><span id="filter-badge"></span></button>
-      <div class="sort-box"><label for="shop-sort" data-i18n="shop.sort">Rendit sipas</label>
-        <select id="shop-sort">
-          <option value="featured" data-i18n="shop.sort.featured">Të zgjedhura</option>
-          <option value="newest" data-i18n="shop.sort.newest">Më të rejat</option>
-          <option value="priceAsc" data-i18n="shop.sort.priceAsc">Çmimi: nga më i ulëti</option>
-          <option value="priceDesc" data-i18n="shop.sort.priceDesc">Çmimi: nga më i larti</option>
-          <option value="nameAsc" data-i18n="shop.sort.nameAsc">Emri: A–Z</option>
-        </select></div>
-    </div>
-    <div class="result-bar"><div class="result-count" id="result-count" aria-live="polite"></div><div class="chips" id="active-chips"></div></div>
-    <div class="product-grid" id="product-grid" aria-busy="true"></div>
-    <div class="empty-state" id="shop-empty" hidden><svg class="icon " aria-hidden="true"><use href="icons.svg#package"/></svg><h3 data-i18n="shop.noResults">Nuk u gjetën produkte</h3><p data-i18n="shop.noResultsDesc">Provoni të hiqni një filtër ose kërkoni diçka tjetër.</p><button type="button" class="button button-outline" id="empty-clear" data-i18n="shop.clearAll">Pastro të gjitha</button></div>
-    <div class="error-state" id="shop-error" hidden><h3 data-i18n="shop.errorTitle">Produktet nuk u ngarkuan</h3><p data-i18n="shop.errorDesc">Produktet nuk u ngarkuan. Kontrolloni lidhjen dhe provoni përsëri.</p><button type="button" class="button" id="shop-retry" data-i18n="shop.retry">Provo përsëri</button></div>
-    <div class="load-more" id="load-more" hidden><div class="progress"><span id="load-progress"></span></div><div id="load-status"></div><button type="button" class="button button-outline" id="load-more-btn" data-i18n="shop.loadMore">Shfaq më shumë produkte</button></div>
-  </div>
-</div>
+<section class="section"><div class="container"><div class="empty-state" style="padding-block:4rem"><svg class="icon " aria-hidden="true"><use href="icons.svg#search"/></svg><h1 style="font-size:1.8rem;margin-bottom:.5rem" data-i18n="404.title">Faqja nuk u gjet</h1><p data-i18n="404.desc">Faqja që kërkoni nuk ekziston ose është zhvendosur.</p><a href="index.html" class="button" data-i18n="404.home">Kthehu te kryefaqja</a></div></div></section>
 </main>
 <footer class="site-footer">
   <div class="container">
@@ -123,12 +91,9 @@
 </footer>
 
 <a href="https://wa.me/355686661686" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg></a>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" defer></script>
 <script src="translations.js" defer></script>
 <script src="translations-extra.js" defer></script>
-<script src="supabase-client.js" defer></script>
 <script src="shop-core.js" defer></script>
 <script src="scripts.js" defer></script>
-<script src="shop-pages.js" defer></script>
 </body>
 </html>

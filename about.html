@@ -2,160 +2,128 @@
 <html lang="sq">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Mësoni për SubCore Solutions — misioni, ekspertiza dhe shërbime IT profesionale për biznese në Shqipëri.">
-<meta property="og:title" content="Rreth Nesh - SubCore Solutions">
-<meta property="og:description" content="Zgjidhje IT të besueshme, profesionale dhe inovative.">
-<title>Rreth Nesh - SubCore Solutions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-sq="Rreth nesh — SubCore Solutions" data-en="About us — SubCore Solutions">Rreth nesh — SubCore Solutions</title>
+<meta name="description" content="SubCore Solutions është kompani IT në Shqipëri që ofron infrastrukturë, rrjete, siguri dhe mbështetje për biznese dhe individë.">
 <link rel="canonical" href="https://subcoresolutions.online/about.html">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
+<meta property="og:site_name" content="SubCore Solutions">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rreth nesh — SubCore Solutions">
+<meta property="og:description" content="SubCore Solutions është kompani IT në Shqipëri që ofron infrastrukturë, rrjete, siguri dhe mbështetje për biznese dhe individë.">
+<meta property="og:url" content="https://subcoresolutions.online/about.html">
+<meta name="theme-color" content="#0b3b66">
+<link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<a href="#main-content" class="skip-link">Skip to main content</a>
-
-<header>
-  <a href="index.html" class="logo-link"><img src="logo-compact.svg" class="logo" alt="SubCore Solutions" width="140" height="28"></a>
-  <nav>
+<a href="#main" class="skip-link" data-i18n="nav.skip">Kalo te përmbajtja</a>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html"><img src="logo-compact.svg" alt="SubCore Solutions" width="178" height="28"></a>
+    <nav id="site-nav" aria-label="Main">
     <a href="index.html" data-i18n="nav.home">Kryefaqja</a>
-    <a href="index.html#services" data-i18n="nav.services">Shërbimet</a>
-    <a href="index.html#pricing" data-i18n="nav.pricing">Çmimet</a>
+    <a href="services.html" data-i18n="nav.services">Shërbimet</a>
     <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
-    <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
     <a href="students.html" data-i18n="nav.students">Studentë</a>
+    <a href="about.html" class="active" aria-current="page" data-i18n="nav.about">Rreth Nesh</a>
     <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
-  </nav>
-  <div class="header-actions">
-    <div class="lang-switcher">
-      <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">ALB</button>
-      <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">ENG</button>
+    <a class="nav-cta button" href="contact.html" data-i18n="nav.quote">Kërko ofertë</a>
+      <div class="lang-switcher lang-switcher-mobile" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+    <div class="header-actions">
+      <div class="lang-switcher" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="sq" aria-pressed="true">SQ</button>
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <a href="cart.html" class="cart-link" data-i18n-aria="shop.cart" aria-label="Shporta"><svg class="icon icon-lg" aria-hidden="true"><use href="icons.svg#cart"/></svg><span class="cart-count" aria-live="polite">0</span></a>
+      <a href="contact.html" class="button button-sm header-cta" data-i18n="nav.quote">Kërko ofertë</a>
+      <button type="button" class="menu-toggle" aria-controls="site-nav" aria-expanded="false" data-i18n-aria="nav.menu" aria-label="Menuja"><span></span><span></span><span></span></button>
     </div>
-    <a href="cart.html" class="cart-link" data-i18n-aria="shop.cart" aria-label="Shporta">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="cart-count">0</span>
-    </a>
-    <button type="button" class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
   </div>
   <div class="nav-overlay" aria-hidden="true"></div>
 </header>
-
-<section class="hero hero-short" style="
-background:
-linear-gradient(rgba(10,25,32,0.85), rgba(10,25,32,0.85)),
-url('https://images.unsplash.com/photo-1597852074816-d933c7d2b988') center/cover no-repeat;">
-  <div class="fade-in">
-    <h1 data-i18n="about.hero.title">About SubCore Solutions</h1>
-    <p data-i18n="about.hero.subtitle">Reliable • Professional • Innovative</p>
-  </div>
-</section>
-
-<section class="section">
-  <div class="section-header" style="text-align:left; max-width:100%; margin-bottom:2rem;" id="main-content">
-    <h2 class="fade-in" data-i18n="about.who.title">Who We Are</h2>
-    <p class="fade-in section-lead" data-i18n="about.who.p1">SubCore Solutions is a professional IT company specialized in delivering reliable technology solutions.</p>
-  </div>
-  <p class="fade-in" data-i18n="about.who.p2">Founded on the principles of reliability, transparency, and technical excellence, we serve clients across Albania with both remote and on-site support.</p>
-  <p class="fade-in" data-i18n="about.who.p3">We understand that every business has unique IT requirements. That is why we take the time to assess your environment and provide ongoing support that grows with your organization.</p>
-</section>
-
-<section class="section-alt about-detail-section">
-  <div class="section-inner">
-  <div class="about-detail-grid">
-    <div class="card fade-in">
-      <div class="card-icon">🎯</div>
-      <h3 data-i18n="about.mission.title">Our Mission</h3>
-      <p data-i18n="about.mission.p1">To empower businesses and individuals with dependable, secure, and efficient IT infrastructure.</p>
-    </div>
-    <div class="card fade-in">
-      <div class="card-icon">📐</div>
-      <h3 data-i18n="about.approach.title">Our Professional Approach</h3>
-      <p data-i18n="about.approach.p1">We follow a structured methodology: assess, design, implement, and provide ongoing monitoring and support.</p>
-    </div>
-    <div class="card fade-in">
-      <div class="card-icon">⚙️</div>
-      <h3 data-i18n="about.expertise.title">IT Expertise</h3>
-      <p data-i18n="about.expertise.p1">Hands-on experience in server administration, network engineering, cloud platforms, cybersecurity, and website development.</p>
-    </div>
-  </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="section-header">
-    <h2 class="fade-in" data-i18n="about.clients.title">Clients We Support</h2>
-    <p class="fade-in section-lead" data-i18n="about.clients.p1">We work with a diverse range of clients — from small businesses and startups to established enterprises in finance, legal, design, architecture, construction, and more.</p>
-  </div>
-
-  <div class="section-header" style="margin-top:3rem;">
-    <h2 class="fade-in" data-i18n="about.industries.title">Industries We Support</h2>
-  </div>
-  <div class="services-grid">
-    <div class="card fade-in">
-      <div class="card-icon">🏦</div>
-      <h3 data-i18n="about.industries.financial.title">Financial & Legal</h3>
-      <p data-i18n="about.industries.financial.desc">Secure and compliant IT infrastructure for sensitive data environments.</p>
-    </div>
-    <div class="card fade-in">
-      <div class="card-icon">🎨</div>
-      <h3 data-i18n="about.industries.design.title">Design & Architecture</h3>
-      <p data-i18n="about.industries.design.desc">High-performance systems for creative and technical workflows.</p>
-    </div>
-    <div class="card fade-in">
-      <div class="card-icon">🏗️</div>
-      <h3 data-i18n="about.industries.construction.title">Construction & Business</h3>
-      <p data-i18n="about.industries.construction.desc">Reliable networking and operational IT support for field and office teams.</p>
-    </div>
-    <div class="card fade-in">
-      <div class="card-icon">🏥</div>
-      <h3 data-i18n="about.industries.healthcare.title">Healthcare & Education</h3>
-      <p data-i18n="about.industries.healthcare.desc">Stable systems and secure data handling for care and learning environments.</p>
-    </div>
-    <div class="card fade-in">
-      <div class="card-icon">🏪</div>
-      <h3 data-i18n="about.industries.retail.title">Retail & Hospitality</h3>
-      <p data-i18n="about.industries.retail.desc">POS systems, guest Wi-Fi, and day-to-day IT support for customer-facing businesses.</p>
+<main id="main">
+<section class="page-header"><div class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html" data-i18n="nav.home">Kryefaqja</a><span class="sep">/</span><span data-i18n="nav.about">Rreth Nesh</span></nav>
+  <h1 data-i18n="about.hero.title">Rreth SubCore Solutions</h1>
+  <p class="lead" data-i18n="about.hero.subtitle">E Besueshme • Profesionale • Inovative</p>
+</div></section>
+<section class="section"><div class="container prose">
+  <h2 data-i18n="about.who.title">Kush Jemi</h2>
+  <p class="lead" style="margin-top:.75rem" data-i18n="about.who.p1">SubCore Solutions është një kompani profesionale IT e specializuar në ofrimin e zgjidhjeve të besueshme teknologjike për biznese dhe individë. Ofron menaxhim dhe mirëmbajtje të plotë të infrastrukturës teknologjike — duke përfshirë servera, rrjete kompjuterike, mjedise përdoruesi dhe pajisje periferike.</p>
+  <p style="margin-top:1.25rem" data-i18n="about.who.p2">Të themeluar mbi parimet e besueshmërisë, transparencës dhe ekselencës teknike, ne shërbejmë klientë në të gjithë Shqipërinë me mbështetje në distancë dhe në terren. Modeli ynë hibrid siguron asistencë të shpejtë në distancë dhe vizita eksperte në terren kur situata e kërkon.</p>
+  <p data-i18n="about.who.p3">E kuptojmë që çdo biznes ka kërkesa unike IT. Prandaj marrim kohë për të vlerësuar mjedisin tuaj, rekomanduar zgjidhjet e duhura dhe ofruar mbështetje të vazhdueshme që rritet me organizatën tuaj.</p>
+</div></section>
+<section class="section section-soft"><div class="container"><div class="value-grid"><div class="value-card"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#award"/></svg></span><h3 data-i18n="about.mission.title">Misioni Ynë</h3><p data-i18n="about.mission.p1">Të fuqizojmë bizneset dhe individët me infrastrukturë IT të besueshme, të sigurt dhe efikase — duke u mundësuar të fokusohen në atë që bëjnë më mirë, ndërsa ne merremi me teknologjinë.</p></div>
+<div class="value-card"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#clipboard"/></svg></span><h3 data-i18n="about.approach.title">Qasja Jonë Profesionale</h3><p data-i18n="about.approach.p1">Ndjekim një metodologji të strukturuar: vlerësojmë mjedisin aktual, projektojmë zgjidhjen optimale, implementojmë me ndërprerje minimale dhe ofrojmë monitorim dhe mbështetje të vazhdueshme. Çdo projekt trajtohet me komunikim të qartë, procese të dokumentuara dhe rezultate të matshme.</p></div>
+<div class="value-card"><span class="icon-box"><svg class="icon " aria-hidden="true"><use href="icons.svg#cpu"/></svg></span><h3 data-i18n="about.expertise.title">Ekspertiza IT</h3><p data-i18n="about.expertise.p1">Ekipi ynë ka përvojë praktike në administrimin e serverëve, inxhinierinë e rrjetit, platformat cloud (Microsoft 365, Google Workspace), sigurinë kibernetike, menaxhimin e hardware-it, zhvillimin e website-ve dhe konsulencën IT. Ndiqim praktikat më të mira të industrisë për zgjidhje moderne dhe të besueshme.</p></div>
+</div></div></section>
+<section class="section"><div class="container">
+  <div class="section-head"><h2 data-i18n="about.clients.title">Klientët që Mbështesim</h2><p class="lead" data-i18n="about.clients.p1">Punojmë me një gamë të gjerë klientësh — nga biznese të vogla dhe startup-e deri te ndërmarrje të konsoliduara në financë, ligj, dizajn, arkitekturë, ndërtim dhe më shumë. Qoftë konfigurim një herë apo shërbime IT të menaxhuara afatgjatë, SubCore Solutions është partneri juaj.</p></div>
+  <h3 style="margin-bottom:1.25rem" data-i18n="about.industries.title">Industritë që Mbështesim</h3>
+  <div class="value-grid"><div class="value-card"><h3 data-i18n="about.industries.financial.title">Financiare &amp; Ligjore</h3><p data-i18n="about.industries.financial.desc">Infrastrukturë IT e sigurt dhe në përputhje me rregulloret për të dhëna sensitive.</p></div>
+<div class="value-card"><h3 data-i18n="about.industries.design.title">Dizajn &amp; Arkitekturë</h3><p data-i18n="about.industries.design.desc">Sisteme me performancë të lartë për rrjedha pune kreative dhe teknike.</p></div>
+<div class="value-card"><h3 data-i18n="about.industries.construction.title">Ndërtim &amp; Biznes</h3><p data-i18n="about.industries.construction.desc">Rrjete të besueshme dhe mbështetje operative IT për ekipe në terren dhe zyrë.</p></div>
+<div class="value-card"><h3 data-i18n="about.industries.healthcare.title">Shëndetësi &amp; Arsim</h3><p data-i18n="about.industries.healthcare.desc">Sisteme të qëndrueshme dhe trajtim të sigurt të të dhënave për mjedise shëndetësore dhe arsimore.</p></div>
+<div class="value-card"><h3 data-i18n="about.industries.retail.title">Tregti &amp; Hotele</h3><p data-i18n="about.industries.retail.desc">Sisteme POS, Wi-Fi për mysafirë dhe mbështetje IT ditore për biznese me klientë.</p></div>
+</div>
+</div></section>
+<section class="cta-band section-tight" style="padding-block:3.5rem">
+  <div class="container cta-inner">
+    <div><h2 data-i18n="cta.title">Gati të Filloni?</h2><p data-i18n="cta.desc">Na tregoni nevojat tuaja IT dhe do t'ju ofrojmë një zgjidhje të përshtatur me çmime transparente.</p></div>
+    <div class="button-group">
+      <a href="contact.html" class="button button-light" data-i18n="hero.cta">Kërko ofertë</a>
+      <a href="https://wa.me/355686661686" class="button button-on-dark" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg><span data-i18n="contact.social.whatsapp">Bisedo në WhatsApp</span></a>
     </div>
   </div>
 </section>
-
-<footer>
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <a href="index.html"><img src="logo-compact.svg" class="logo" alt="SubCore Solutions"></a>
-      <p data-i18n="footer.tagline">Professional IT infrastructure, networking, and support for businesses across Albania.</p>
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="logo-compact-light.svg" alt="SubCore Solutions" width="178" height="28">
+        <p data-i18n="footer.tagline">Infrastrukturë IT profesionale, rrjete dhe mbështetje për biznese në të gjithë Shqipërinë.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.services">Shërbimet</h4>
+        <a href="services.html#server" data-i18n="services.server.title">Server &amp; Infrastrukturë</a>
+        <a href="services.html#networking" data-i18n="services.networking.title">Zgjidhje Rrjeti</a>
+        <a href="services.html#security" data-i18n="services.security.title">Siguri Kibernetike &amp; Backup</a>
+        <a href="services.html#webdev" data-i18n="services.webdev.title">Zhvillim Website</a>
+        <a href="services.html#pricing" data-i18n="nav.pricing">Çmimet</a>
+      </div>
+      <div>
+        <h4 data-i18n="footer.company">Kompania</h4>
+        <a href="shop.html" data-i18n="nav.shop">Dyqani</a>
+        <a href="students.html" data-i18n="nav.students">Studentë</a>
+        <a href="about.html" data-i18n="nav.about">Rreth Nesh</a>
+        <a href="contact.html" data-i18n="nav.contact">Kontakt</a>
+      </div>
+      <div class="footer-contact">
+        <h4 data-i18n="footer.contact">Kontakt</h4>
+        <a href="mailto:info@subcoresolutions.online"><svg class="icon " aria-hidden="true"><use href="icons.svg#mail"/></svg>info@subcoresolutions.online</a>
+        <a href="tel:+355686661686"><svg class="icon " aria-hidden="true"><use href="icons.svg#phone"/></svg>+355 68 666 1686</a>
+        <a href="https://wa.me/355686661686" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg>WhatsApp</a>
+        <a href="https://instagram.com/subcore_solutions" target="_blank" rel="noopener"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#instagram"/></svg>Instagram</a>
+      </div>
     </div>
-    <div class="footer-col">
-      <h4 data-i18n="footer.links">Quick Links</h4>
-      <a href="index.html#services" data-i18n="nav.services">Services</a>
-      <a href="index.html#pricing" data-i18n="nav.pricing">Pricing</a>
-      <a href="shop.html" data-i18n="nav.shop">Shop</a>
-      <a href="about.html" data-i18n="nav.about">About</a>
-      <a href="students.html" data-i18n="nav.students">Students</a>
-      <a href="contact.html" data-i18n="nav.contact">Contact</a>
+    <div class="footer-bottom">
+      <span data-i18n="footer.rights">© 2026 SubCore Solutions</span>
+      <span data-i18n="footer.hours">Mbështetje në distancë dhe në vend</span>
     </div>
-    <div class="footer-col">
-      <h4 data-i18n="footer.contact">Contact</h4>
-      <a href="mailto:info@subcoresolutions.online">info@subcoresolutions.online</a>
-      <a href="mailto:info.subcoresolutions@gmail.com">info.subcoresolutions@gmail.com</a>
-      <a href="tel:+355686661686">+355 68 666 1686</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p><span data-i18n="footer.rights">© 2026 SubCore Solutions</span></p>
   </div>
 </footer>
 
-<a href="https://wa.me/355686661686" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
-  <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-</a>
-
+<a href="https://wa.me/355686661686" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon icon-fill" aria-hidden="true"><use href="icons.svg#whatsapp"/></svg></a>
 <script src="translations.js" defer></script>
+<script src="translations-extra.js" defer></script>
 <script src="shop-core.js" defer></script>
 <script src="scripts.js" defer></script>
 </body>

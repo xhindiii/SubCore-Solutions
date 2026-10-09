@@ -1,4 +1,6 @@
-<svg width="160" height="32" viewBox="0 0 160 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SubCore Solutions">
-  <text x="0" y="22" fill="#f2f2f2" font-size="20" font-family="Segoe UI, Arial, sans-serif" font-weight="600">SubCore</text>
-  <text x="92" y="22" fill="#8aa3ad" font-size="11" letter-spacing="2" font-family="Segoe UI, Arial, sans-serif" font-weight="500">SOLUTIONS</text>
+<svg width="200" height="32" viewBox="0 0 200 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SubCore Solutions">
+  <rect x="0" y="4" width="24" height="24" rx="5" fill="#0b3b66"/>
+  <circle cx="12" cy="16" r="5" fill="#ffffff"/>
+  <text x="34" y="23" fill="#0f1f33" font-size="20" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" letter-spacing="-0.4">SubCore</text>
+  <text x="117" y="22.5" fill="#5b697b" font-size="10.5" letter-spacing="2" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="500">SOLUTIONS</text>
 </svg>
