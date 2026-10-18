@@ -10,11 +10,13 @@
 7. Is the invoice app complete and where will it be hosted? Where does it export backups?
 8. Are shop prices VAT-inclusive?
 9. Company legal data (registration number, address) for the legal pages.
-10. OK to put Cloudflare in front of the domain?
+10. OK to put Cloudflare in front of the domain? **Now also required by hosting terms:** GitHub Pages may not host an online business/shop; plan in `HOSTING_MIGRATION.md`. Needs your go-ahead before the DNS step.
 
 ## Risks
 | Risk | Impact | Likelihood | Mitigation |
 |---|---|---|---|
+| Hosting on GitHub Pages conflicts with GitHub's terms for online businesses/e-commerce | Site could be unpublished by GitHub | Low-Medium | Move to Cloudflare (prepared; do not remove GitHub Pages until verified) |
+| DNS move drops a record (e.g. MX/TXT) | Mail or subdomain breaks | Medium | Compare Cloudflare's imported records with the saved list before switching nameservers |
 | No automatic backups (Free plan) | Total data loss if the project is deleted/corrupted | Medium | Decide #3 now; manual dump before anything else |
 | Project pauses after a week of inactivity (Free) | Shop and checkout stop working | Medium | Pro plan or keepalive/activity |
 | Old admin password public in history | Account takeover | Medium until rotated | Rotate + MFA |

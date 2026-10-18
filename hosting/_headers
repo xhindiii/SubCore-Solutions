@@ -1,0 +1,25 @@
+# Security + caching headers for the production host (Cloudflare static assets).
+# GitHub Pages cannot send these; they are the main technical gain of moving.
+# Copied into dist/ by scripts/build-static.mjs. Syntax: https://developers.cloudflare.com/workers/static-assets/headers/
+
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: SAMEORIGIN
+
+# The admin page must never be cached by shared caches or indexed.
+/admin.html
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+
+# Checkout / cart: private pages, keep out of search indexes.
+/cart.html
+  X-Robots-Tag: noindex
+/checkout.html
+  X-Robots-Tag: noindex
+
+# No Cache-Control rule for the other files on purpose: the host's default already revalidates on every request,
+# and a '/*.html' rule would be merged with (and contradict) the no-store rule above.
