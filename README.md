@@ -1,6 +1,6 @@
 # SubCore Solutions
 
-Website and online shop for SubCore Solutions (IT services, Albania). Plain HTML, CSS and JavaScript on GitHub Pages, with Supabase for the database, login and product photos. Albanian by default, English with the SQ/EN switch.
+Website and online shop for SubCore Solutions (IT services, Albania). Plain HTML, CSS and JavaScript (currently on GitHub Pages; a move to Cloudflare is prepared, see `docs/HOSTING_MIGRATION.md`), with Supabase for the database, login and product photos. Albanian by default, English with the SQ/EN switch.
 
 ## Pages
 

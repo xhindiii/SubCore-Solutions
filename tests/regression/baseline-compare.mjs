@@ -90,7 +90,13 @@ out.push("INFO  pages added on dev: " + (added.join(", ") || "none"));
 // Non-HTML assets referenced by baseline must still exist
 const walk = (d, rel = "") => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.name === ".git" || e.name === "tests" || e.name === "node_modules" ? [] : e.isDirectory() ? walk(path.join(d, e.name), rel + e.name + "/") : [rel + e.name]);
 const baseFiles = walk(baseDir), devFiles = new Set(walk(devDir));
-const lostFiles = baseFiles.filter((f) => !devFiles.has(f));
+// When the dev folder is the built public bundle (scripts/build-static.mjs, recognisable by its _headers file),
+// repository-only files are intentionally NOT published: SQL, Markdown notes, CNAME, LICENSE, dotfiles.
+// Every other baseline file (pages, scripts, styles, images, data) must still be there.
+const IS_BUNDLE = devFiles.has("_headers");
+const UNPUBLISHED_OK = /(\.sql|\.md)$|^(CNAME|LICENSE|\.gitignore|\.env\.example)$/;
+const lostFiles = baseFiles.filter((f) => !devFiles.has(f) && !(IS_BUNDLE && UNPUBLISHED_OK.test(f)));
+if (IS_BUNDLE) out.push("INFO  dev folder is the built public bundle: repository-only files (sql, md, CNAME, LICENSE, dotfiles) are expected to be unpublished");
 (lostFiles.length ? bad : ok)("no baseline file was deleted or renamed (" + baseFiles.length + " files)" + (lostFiles.length ? " — LOST: " + lostFiles.join(", ") : ""));
 
 for (const file of basePages) {

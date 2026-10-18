@@ -4,3 +4,6 @@
 node_modules/
 *.log
 tests/security/rls-matrix.actual
+
+# Built public bundle (scripts/build-static.mjs)
+dist/

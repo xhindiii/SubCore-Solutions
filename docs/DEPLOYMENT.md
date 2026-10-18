@@ -1,6 +1,6 @@
 # Production deployment and rollback
 
-**Nothing in this repository deploys itself.** GitHub Pages serves `main`; work is on `dev/platform`. Do not deploy, merge or run SQL on production without the owner's explicit approval (see gates in `IMPLEMENTATION_PLAN.md`).
+**Nothing in this repository deploys itself.** GitHub Pages serves `main` today. GitHub's terms do not allow Pages to host an online business or shop, so a move to Cloudflare is prepared in `HOSTING_MIGRATION.md` (not executed); work is on `dev/platform`. Do not deploy, merge or run SQL on production without the owner's explicit approval (see gates in `IMPLEMENTATION_PLAN.md`).
 
 ## Pre-flight checklist (all must be ticked)
 - [ ] `docs/TESTING.md` re-run is green on the exact commit to be released

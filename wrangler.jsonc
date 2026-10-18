@@ -1,0 +1,13 @@
+// Cloudflare deployment config (static site only; no server code, no secrets).
+// Not used by GitHub Pages. The deployed folder is ./dist, built by `node scripts/build-static.mjs`.
+{
+  "name": "subcore-solutions",
+  "compatibility_date": "2026-10-18",
+  "assets": {
+    "directory": "./dist",
+    // "none" keeps every existing URL exactly as it is today (about.html stays about.html, no redirects to clean URLs).
+    "html_handling": "none",
+    // Unknown URLs return HTTP 404 with the site's own 404.html.
+    "not_found_handling": "404-page"
+  }
+}
