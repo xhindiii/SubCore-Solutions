@@ -144,7 +144,7 @@ ON CONFLICT (email) DO NOTHING;
 
 -- Seed starting website content ------------------------------------------
 INSERT INTO website_settings (key, value) VALUES
-  ('company_info', '{"name": "SubCore Solutions", "tagline": "Professional IT infrastructure, networking, and support for businesses across Albania.", "email": "info@subcoresolutions.online", "phone": "+355 68 666 1686", "whatsapp": "355686661686"}'),
+  ('company_info', '{"name": "SubCore Solutions", "tagline": "Professional IT infrastructure, networking, and support for businesses across Albania.", "email": "info.subcoresolutions@gmail.com", "phone": "+355 68 666 1686", "whatsapp": "355686661686"}'),
   ('homepage_hero', '{"title_en": "Advanced IT Infrastructure & Innovation", "title_sq": "Infrastrukturë IT e Avancuar & Inovacion", "subtitle_en": "Professional IT solutions for businesses and individuals.", "subtitle_sq": "Zgjidhje profesionale IT për biznese dhe individë."}'),
-  ('contact_info', '{"email": "info@subcoresolutions.online", "secondary_email": "info.subcoresolutions@gmail.com", "phone": "+355 68 666 1686", "address": "Albania"}')
+  ('contact_info', '{"email": "info.subcoresolutions@gmail.com", "phone": "+355 68 666 1686", "address": "Albania"}')
 ON CONFLICT (key) DO NOTHING;
