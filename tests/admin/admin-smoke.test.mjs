@@ -19,7 +19,7 @@ function makeEl(tag = "div") {
   };
 }
 
-async function boot({ hash = "", role = "admin", orders, notifications }) {
+async function boot({ hash = "", role = "admin", orders, notifications, projects = [] }) {
   const byId = {};
   const q = (sel) => (byId[sel] ||= makeEl());
   const handlers = {};
@@ -41,7 +41,7 @@ async function boot({ hash = "", role = "admin", orders, notifications }) {
     async fetchCatalog() { return { products: [], categories: [] }; }, async fetchServices() { return []; },
     async fetchOrders() { calls.fetchOrders++; return ord; }, async fetchInquiries() { return []; }, async fetchSettings() { return {}; },
     async detectExtended() { return true; }, async fetchAudit() { return []; }, async fetchTeam() { return []; },
-    async fetchNotifications() { return nf; }, async retryNotification(id) { calls.retry.push(id); return true; },
+    async fetchProjects() { return projects; }, async fetchNotifications() { return nf; }, async retryNotification(id) { calls.retry.push(id); return true; },
   };
   const history = { replaceState(_a, _b, h) { location.hash = h; } };
   const ctx = vm.createContext({ document, window, location, history, SupabaseClient, console: { error() {}, warn() {}, log() {} }, setTimeout, URL, Blob, Intl, Date, String, Number, Object, Array, JSON, Math, parseFloat, parseInt, decodeURIComponent, encodeURIComponent, Promise });

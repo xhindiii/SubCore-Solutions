@@ -30,7 +30,9 @@ Website and online shop for SubCore Solutions (IT services, Albania). Plain HTML
 
 6. Optional — order e-mail notifications: `supabase-migration-v5-notifications.sql` (undo: `supabase-migration-v5-ROLLBACK.sql`), then follow `NOTIFICATIONS.md`. Staging first; nothing is sent until you enable it.
 
-Order of the SQL files for a new project: `supabase-schema-fresh-install.sql` → `supabase-migration-v3-store.sql` → `supabase-migration-v4-security.sql` → (optional) `supabase-migration-v5-notifications.sql`. Everything in `legacy/` is kept only for reference and must not be run.
+7. Optional — portfolio (Projects page) and extra service options: `supabase-migration-v6-portfolio.sql` (undo: `supabase-migration-v6-ROLLBACK.sql`), then see `PORTFOLIO.md`. Staging first.
+
+Order of the SQL files for a new project: `supabase-schema-fresh-install.sql` → `supabase-migration-v3-store.sql` → `supabase-migration-v4-security.sql` → (optional) `supabase-migration-v5-notifications.sql` → (optional) `supabase-migration-v6-portfolio.sql`. Everything in `legacy/` is kept only for reference and must not be run.
 
 ## Using the admin panel
 
