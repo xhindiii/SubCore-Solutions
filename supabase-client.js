@@ -508,6 +508,13 @@ const SupabaseClient = {
     this._check(error);
   },
 
+  // Admin only (RLS "Admin delete orders"). The admin screen only offers it for cancelled orders.
+  async deleteOrder(id) {
+    this._need();
+    const { error } = await sb.from("orders").delete().eq("id", id);
+    this._check(error);
+  },
+
   async fetchInquiries() {
     this._need();
     const { data, error } = await sb.from("inquiries").select("*").order("created_at", { ascending: false });
