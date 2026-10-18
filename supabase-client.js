@@ -9,6 +9,8 @@ const SUPABASE_URL = "https://rmoknncvaqlkxanuvxms.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtb2tubmN2YXFsa3hhbnV2eG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NjYxNDcsImV4cCI6MjEwMDI0MjE0N30.pE2yIW0SyxMKTUWQ1zAHbI2iKKiSmehsHsQUGhWxQac";
 
 const PRODUCT_IMAGE_BUCKET = "product-images";
+const PORTFOLIO_IMAGE_BUCKET = "portfolio-images";
+const PORTFOLIO_MAX_BYTES = 5 * 1024 * 1024;
 
 const sb = (typeof window !== "undefined" && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -83,7 +85,31 @@ const SupabaseClient = {
       icon: row.icon || "",
       featured: row.featured === true,
       display_order: row.display_order || 0,
-      available: row.available !== false
+      available: row.available !== false,
+      // v6 extras: present only once supabase-migration-v6-portfolio.sql has been run
+      cover_image: row.cover_image || "",
+      price_label: parseJson(row.price_label, null),
+      _v6: Object.prototype.hasOwnProperty.call(row, "cover_image")
+    };
+  },
+
+  _toProject(row) {
+    return {
+      id: row.id,
+      title: parseJson(row.title, { en: row.id, sq: row.id }),
+      category: parseJson(row.category, { en: "Other", sq: "Tjetër" }),
+      summary: parseJson(row.summary, { en: "", sq: "" }),
+      description: parseJson(row.description, { en: "", sq: "" }),
+      cover_image: row.cover_image || "",
+      images: Array.isArray(row.images) ? row.images.filter((u) => typeof u === "string") : [],
+      technologies: Array.isArray(row.technologies) ? row.technologies : [],
+      completed_on: row.completed_on || "",
+      project_status: row.project_status || "completed",
+      url: row.url || "",
+      featured: row.featured === true,
+      display_order: row.display_order || 0,
+      status: row.status || "draft",
+      services: []
     };
   },
 
@@ -315,6 +341,10 @@ const SupabaseClient = {
       display_order: service.display_order || 0,
       available: service.available
     };
+    if (service._v6) {
+      row.cover_image = service.cover_image || null;
+      row.price_label = service.price_label || null;
+    }
     const { data, error } = await sb.from("services").upsert(row).select();
     this._check(error);
     return data;
@@ -324,6 +354,131 @@ const SupabaseClient = {
     this._need();
     const { error } = await sb.from("services").delete().eq("id", id);
     this._check(error);
+  },
+
+  /* ── Portfolio (projects) ─────────────────────────────────────────────
+     Public visitors only ever receive rows with status = 'published' (enforced by Row Level
+     Security in the database, not by this code). Returns null when the v6 migration is not installed. */
+  async fetchProjects() {
+    this._need();
+    const [p, l] = await Promise.all([
+      sb.from("projects").select("*").order("display_order", { ascending: true }),
+      sb.from("project_services").select("project_id, service_id")
+    ]);
+    if (p.error && isMissingSchema(p.error)) return null;
+    this._check(p.error);
+    this._check(l.error);
+    const byProject = {};
+    (l.data || []).forEach((r) => { (byProject[r.project_id] ||= []).push(r.service_id); });
+    return p.data.map((r) => Object.assign(this._toProject(r), { services: byProject[r.id] || [] }));
+  },
+
+  async upsertProject(project, serviceIds) {
+    this._need();
+    const row = {
+      id: project.id,
+      title: project.title,
+      category: project.category,
+      summary: project.summary,
+      description: project.description,
+      cover_image: project.cover_image || null,
+      images: project.images || [],
+      technologies: project.technologies || [],
+      completed_on: project.completed_on || null,
+      project_status: project.project_status || "completed",
+      url: project.url || null,
+      featured: !!project.featured,
+      display_order: project.display_order || 0,
+      status: project.status || "draft"
+    };
+    const { error } = await sb.from("projects").upsert(row);
+    this._check(error);
+    if (Array.isArray(serviceIds)) {
+      const del = await sb.from("project_services").delete().eq("project_id", project.id);
+      this._check(del.error);
+      if (serviceIds.length) {
+        const ins = await sb.from("project_services").insert(serviceIds.map((service_id) => ({ project_id: project.id, service_id })));
+        this._check(ins.error);
+      }
+    }
+  },
+
+  // Replaces the list of projects linked to one service (the "related projects" of a service).
+  async setServiceProjects(serviceId, projectIds) {
+    this._need();
+    const del = await sb.from("project_services").delete().eq("service_id", serviceId);
+    this._check(del.error);
+    if (projectIds.length) {
+      const ins = await sb.from("project_services").insert(projectIds.map((project_id) => ({ project_id, service_id: serviceId })));
+      this._check(ins.error);
+    }
+  },
+
+  async setProjectStatus(id, status) {
+    this._need();
+    const { error } = await sb.from("projects").update({ status }).eq("id", id);
+    this._check(error);
+  },
+
+  async deleteProject(id) {
+    this._need();
+    const { error, count } = await sb.from("projects").delete({ count: "exact" }).eq("id", id);
+    this._check(error);
+    if (count === 0) throw new Error("Only an administrator can permanently delete a project. Archive it instead.");
+  },
+
+  async reorderProjects(ids) {
+    this._need();
+    const { error } = await sb.rpc("reorder_projects", { p_ids: ids });
+    this._check(error);
+  },
+
+  async reorderServices(ids) {
+    this._need();
+    const { error } = await sb.rpc("reorder_services", { p_ids: ids });
+    this._check(error);
+  },
+
+  /* Checks a file BEFORE upload: allowed type, size, and that the first bytes really are a JPEG,
+     PNG or WebP picture (a renamed .exe or .svg is refused). The storage bucket enforces the same
+     type and size limits again on the server. Returns { ok, reason, ext, mime }. */
+  async checkImage(file) {
+    if (!file) return { ok: false, reason: "No file selected." };
+    if (file.size > PORTFOLIO_MAX_BYTES) return { ok: false, reason: "“" + file.name + "” is larger than 5 MB." };
+    if (file.size < 16) return { ok: false, reason: "“" + file.name + "” is empty or not a picture." };
+    const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const at = (i, str) => str.split("").every((c, k) => b[i + k] === c.charCodeAt(0));
+    let kind = null;
+    if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) kind = { mime: "image/jpeg", ext: "jpg" };
+    else if (b[0] === 0x89 && at(1, "PNG") && b[4] === 0x0d && b[5] === 0x0a) kind = { mime: "image/png", ext: "png" };
+    else if (at(0, "RIFF") && at(8, "WEBP")) kind = { mime: "image/webp", ext: "webp" };
+    if (!kind) return { ok: false, reason: "“" + file.name + "” must be a JPEG, PNG or WebP picture." };
+    return { ok: true, mime: kind.mime, ext: kind.ext };
+  },
+
+  // Uploads to the public "portfolio-images" bucket and returns the public https URL.
+  async uploadPortfolioImage(file) {
+    this._need();
+    const chk = await this.checkImage(file);
+    if (!chk.ok) throw new Error(chk.reason);
+    const rand = Math.random().toString(36).slice(2, 10);
+    const path = `${Date.now()}-${rand}.${chk.ext}`;   // name comes from us, never from the file
+    const { error } = await sb.storage.from(PORTFOLIO_IMAGE_BUCKET).upload(path, file, {
+      cacheControl: "31536000", upsert: false, contentType: chk.mime
+    });
+    this._check(error);
+    return sb.storage.from(PORTFOLIO_IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+  },
+
+  // Best-effort clean-up of an image that was replaced or removed. Only touches our own bucket.
+  async deletePortfolioImage(url) {
+    if (!sb || typeof url !== "string") return;
+    const marker = "/storage/v1/object/public/" + PORTFOLIO_IMAGE_BUCKET + "/";
+    const i = url.indexOf(marker);
+    if (i < 0) return;
+    const name = decodeURIComponent(url.slice(i + marker.length).split("?")[0]);
+    if (!/^[A-Za-z0-9._-]+$/.test(name)) return;
+    try { await sb.storage.from(PORTFOLIO_IMAGE_BUCKET).remove([name]); } catch { /* ignore: a stray file is harmless */ }
   },
 
   /* ── Admin: orders & inquiries ─────────────────────────────────────── */
@@ -341,6 +496,7 @@ const SupabaseClient = {
       notes: row.notes,
       items: parseJson(row.items, []),
       total: parseFloat(row.total) || 0,
+      shipping: parseFloat(row.shipping) || 0,
       status: row.status,
       created_at: row.created_at
     }));
@@ -406,6 +562,77 @@ const SupabaseClient = {
     if (error && isMissingSchema(error)) return null; // v4 migration not installed
     this._check(error);
     return data;
+  },
+
+  /* ── Admin: order e-mail notifications (admin only; table created by supabase-migration-v5-notifications.sql) ──
+     The log holds no customer data. Sending itself happens on the server (Edge Function), never in the browser. */
+  async fetchNotifications(limit) {
+    this._need();
+    const { data, error } = await sb.from("notification_log")
+      .select("id, event_type, order_id, order_number, status, attempts, next_attempt_at, last_error, created_at, sent_at")
+      .order("id", { ascending: false }).limit(limit || 200);
+    if (error && isMissingSchema(error)) return null; // v5 migration not installed
+    this._check(error);
+    return data;
+  },
+
+  // Puts a failed notification back in the queue. Returns false if there was nothing to retry (e.g. already sent).
+  async retryNotification(id) {
+    this._need();
+    const { data, error } = await sb.rpc("retry_notification", { p_id: id });
+    this._check(error);
+    return data === true;
+  },
+
+  /* ── Admin: promo templates (table created by supabase-migration-v7-promo-reports.sql) ──
+     A template stores look-and-feel only. Nothing here touches products, services or invoices. */
+  async fetchPromoTemplates() {
+    this._need();
+    const { data, error } = await sb.from("promo_templates").select("id, name, spec, updated_at").order("name");
+    if (error && isMissingSchema(error)) return null; // v7 not installed: built-in templates still work
+    this._check(error);
+    return data.map((r) => ({ id: r.id, name: r.name, spec: parseJson(r.spec, {}), updated_at: r.updated_at }));
+  },
+  async savePromoTemplate(t) {
+    this._need();
+    const row = { name: String(t.name || "").trim().slice(0, 80), spec: t.spec };
+    if (t.id) { const { data, error } = await sb.from("promo_templates").update(row).eq("id", t.id).select("id").single(); this._check(error); return data.id; }
+    const { data, error } = await sb.from("promo_templates").insert(row).select("id").single();
+    this._check(error);
+    return data.id;
+  },
+  async deletePromoTemplate(id) {
+    this._need();
+    const { error } = await sb.from("promo_templates").delete().eq("id", id);
+    this._check(error);
+  },
+
+  /* ── Admin: purchase ledger (admin only; created by v7). Rows are voided, never deleted. ── */
+  async fetchPurchases() {
+    this._need();
+    const { data, error } = await sb.from("purchase_records").select("*").order("doc_date", { ascending: false }).order("id", { ascending: false });
+    if (error && isMissingSchema(error)) return null;
+    this._check(error);
+    return data.map((r) => ({ id: r.id, supplier: r.supplier, doc_number: r.doc_number, doc_date: r.doc_date, currency: r.currency,
+      net_amount: r.net_amount, vat_amount: r.vat_amount, total_amount: r.total_amount, paid_amount: r.paid_amount, paid_date: r.paid_date,
+      note: r.note, voided: r.voided, void_reason: r.void_reason }));
+  },
+  async addPurchase(p) {
+    this._need();
+    const { data, error } = await sb.from("purchase_records").insert(p).select("id").single();
+    this._check(error);
+    return data.id;
+  },
+  // Only the payment fields and note can change afterwards; amounts of a recorded document are corrected by voiding it and re-entering it.
+  async updatePurchasePayment(id, paid_amount, paid_date, note) {
+    this._need();
+    const { error } = await sb.from("purchase_records").update({ paid_amount, paid_date, note }).eq("id", id);
+    this._check(error);
+  },
+  async voidPurchase(id, reason) {
+    this._need();
+    const { error } = await sb.from("purchase_records").update({ voided: true, void_reason: String(reason || "").trim().slice(0, 300) }).eq("id", id);
+    this._check(error);
   },
 
   async upsertSetting(key, value) {

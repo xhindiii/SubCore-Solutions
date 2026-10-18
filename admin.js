@@ -14,19 +14,26 @@
     ["inquiries", "Enquiries", "inbox"],
     ["categories", "Categories", "grid"],
     ["services", "Services", "support"],
+    ["portfolio", "Portfolio", "image"],
     ["team", "Team", "users"],
     ["activity", "Activity", "activity"],
+    ["notifications", "Notifications", "mail"],
+    ["promo", "Promo graphics", "tag"],
+    ["reports", "Reports", "receipt"],
     ["settings", "Settings", "settings"]
   ];
   /* What each role may open. The database enforces the same rules (RLS); this only hides what would be refused. */
-  const ACCESS = { admin: null, editor: ["dashboard", "products", "categories", "services", "settings"], staff: ["dashboard", "orders", "inquiries", "settings"] };
+  const ACCESS = { admin: null, editor: ["dashboard", "products", "categories", "services", "portfolio", "promo", "settings"], staff: ["dashboard", "orders", "inquiries", "settings"] };
   const ROLE_LABEL = { admin: "Admin", editor: "Editor", staff: "Staff" };
   const ROLE_HELP = { admin: "Full access, including team, activity log and delivery settings.", editor: "Products, categories and services. Cannot see orders or customers.", staff: "Orders and enquiries. Cannot change the catalogue." };
   const PAGE = 20;
 
-  const S = { admin: null, products: [], categories: [], services: [], orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "",
-    pg: { products: 1, orders: 1, inquiries: 1, activity: 1 },
-    pf: { q: "", cat: "", state: "", sort: "newest" }, of: { q: "", status: "" }, qf: { status: "" } };
+  const NOTIF_STATUS = [["pending", "Queued", "amber"], ["sending", "Sending", "blue"], ["sent", "Sent", "green"], ["failed", "Retrying", "amber"], ["dead", "Failed", "red"]];
+  const NOTIF_EVENT = { order_submitted: "New order", payment_confirmed: "Payment confirmed" };
+
+  const S = { admin: null, products: [], categories: [], services: [], projects: undefined, orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "", notifications: undefined, promoTemplates: undefined, purchases: undefined,
+    pg: { products: 1, orders: 1, inquiries: 1, activity: 1, notifications: 1 },
+    pf: { q: "", cat: "", state: "", sort: "newest" }, of: { q: "", status: "" }, qf: { status: "" }, nf: { status: "" }, pj: { q: "", status: "" } };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => [...(root || document).querySelectorAll(sel)];
@@ -160,27 +167,37 @@
     S.inquiries = inquiries;
     S.settings = settings;
     await SupabaseClient.detectExtended().catch(() => {});
+    S.projects = can("portfolio") ? await safe(SupabaseClient.fetchProjects(), null) : null;
     if (isAdmin()) S.audit = await safe(SupabaseClient.fetchAudit(300), null);
+    if (isAdmin()) S.notifications = await safe(SupabaseClient.fetchNotifications(200), null);
+    S.promoTemplates = can("promo") ? await safe(SupabaseClient.fetchPromoTemplates(), null) : null;
+    S.purchases = isAdmin() ? await safe(SupabaseClient.fetchPurchases(), null) : null;
   }
 
   async function reload(what) {
     try {
       if (what === "catalog") { const c = await SupabaseClient.fetchCatalog(); S.products = c.products; S.categories = c.categories; }
       if (what === "services") S.services = await SupabaseClient.fetchServices();
+      if (what === "projects") S.projects = await SupabaseClient.fetchProjects();
       if (what === "orders") S.orders = await SupabaseClient.fetchOrders();
       if (what === "inquiries") S.inquiries = await SupabaseClient.fetchInquiries();
       if (what === "settings") S.settings = await SupabaseClient.fetchSettings();
       if (what === "team") S.team = await SupabaseClient.fetchTeam();
       if (what === "audit") S.audit = await SupabaseClient.fetchAudit(300);
+      if (what === "notifications") S.notifications = await SupabaseClient.fetchNotifications(200);
+      if (what === "promoTemplates") S.promoTemplates = await SupabaseClient.fetchPromoTemplates();
+      if (what === "purchases") S.purchases = await SupabaseClient.fetchPurchases();
     } catch (e) { fail(e, "Could not refresh data"); }
   }
 
   const newOrders = () => S.orders.filter((o) => o.status === "pending").length;
   const newInquiries = () => (S.inquiries || []).filter((q) => q.status === "new").length;
+  /* Notifications that used all their automatic retries and need a human (Admin → Notifications → Retry). */
+  const failedNotifications = () => (S.notifications || []).filter((n) => n.status === "dead").length;
 
   /* ── Shell ──────────────────────────────────────────────────────── */
   function renderNav() {
-    const badge = { orders: newOrders(), inquiries: newInquiries() };
+    const badge = { orders: newOrders(), inquiries: newInquiries(), notifications: isAdmin() ? failedNotifications() : 0 };
     const make = (cls) => SECTIONS.filter((x) => can(x[0])).map(([id, label, ic]) =>
       '<button type="button" class="nav-btn" data-nav="' + id + '"' + (S.section === id ? ' aria-current="page"' : "") + ">" + icon(ic) + "<span>" + label + "</span>" +
       (badge[id] ? '<span class="nav-badge">' + badge[id] + "</span>" : "") + "</button>").join("");
@@ -194,16 +211,29 @@
     if (!SupabaseClient.extended) msgs.push("The store upgrade is not installed in your database yet, so brand, SKU, sale price, extra photos and specifications are not saved. Run <strong>supabase-migration-v3-store.sql</strong> in the Supabase SQL editor.");
     if (S.inquiries === null && can("inquiries")) msgs.push("Enquiries are not being stored yet — the same migration creates that table.");
     if (isAdmin() && S.audit === null) msgs.push("Roles, the activity log and team management are not installed yet. Run <strong>supabase-migration-v4-security.sql</strong> in the Supabase SQL editor.");
+    if (isAdmin() && S.notifications === null) msgs.push("Order e-mail notifications are not set up yet. Run <strong>supabase-migration-v5-notifications.sql</strong> in the Supabase SQL editor, then follow <strong>NOTIFICATIONS.md</strong>.");
+    if (isAdmin() && failedNotifications() > 0) msgs.push("<strong>" + failedNotifications() + " order notification" + (failedNotifications() === 1 ? "" : "s") + " could not be e-mailed.</strong> <a href=\"#notifications\">Open Notifications</a> to retry.");
     n.hidden = !msgs.length;
     n.innerHTML = msgs.join("<br>");
   }
 
-  function go(section) {
-    if (!SECTIONS.some((s) => s[0] === section) || !can(section)) section = "dashboard";
+  /* `target` is a section id, or "orders/<id>" — the link in the notification e-mail opens that order after sign-in. */
+  function go(target) {
+    const parts = String(target || "").split("/");
+    let section = parts[0], arg = "";
+    if (parts.length > 1) { try { arg = decodeURIComponent(parts.slice(1).join("/")); } catch { arg = ""; } }
+    if (!SECTIONS.some((s) => s[0] === section) || !can(section)) { section = "dashboard"; arg = ""; }
     S.section = section;
     if (location.hash !== "#" + section) history.replaceState(null, "", "#" + section);
     render();
     window.scrollTo(0, 0);
+    if (section === "orders" && arg) openOrderById(arg);
+  }
+
+  async function openOrderById(id) {
+    const has = () => S.orders.some((o) => String(o.id) === String(id));
+    if (!has()) { await reload("orders"); if (S.section === "orders") render(); } // a brand-new order may not be loaded yet
+    if (has()) orderDetail(id); else toast("info", "That order was not found.");
   }
 
   function render() {
@@ -215,7 +245,15 @@
     const actions = $("#page-actions");
     actions.innerHTML = "";
     const view = $("#view");
-    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, team: viewTeam, activity: viewActivity, settings: viewSettings })[S.section](view, actions);
+    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, portfolio: viewPortfolio, team: viewTeam, activity: viewActivity, notifications: viewNotifications, promo: viewExt, reports: viewExt, settings: viewSettings })[S.section](view, actions);
+  }
+
+  /* Promo graphics and Reports live in their own files (admin-promo.js, admin-reports.js) and register in window.AdminViews.
+     They get a small, explicit toolkit instead of reaching into this file's internals. */
+  function viewExt(view, actions) {
+    const mod = window.AdminViews && window.AdminViews[S.section];
+    if (!mod) { view.innerHTML = '<div class="card"><div class="empty">This section could not be loaded. Reload the page.</div></div>'; return; }
+    mod(view, actions, { S, $, $$, esc, icon, nm, toast, ok, fail, confirmBox, drawer, busy, isAdmin, can, reload, render, downloadCsv, fmtDate });
   }
 
   /* ── Dashboard ──────────────────────────────────────────────────── */
@@ -476,21 +514,32 @@
     actions.innerHTML = '<button type="button" class="button" data-action="new-service">' + icon("plus") + " Add service</button>";
     const intro = '<p class="muted" style="margin-bottom:1rem;max-width:62ch">Services you add here replace the built-in list on the Home and Services pages. Leave this empty to keep the built-in list.</p>';
     if (!S.services.length) { view.innerHTML = intro + '<div class="card"><div class="empty">No custom services yet.</div></div>'; return; }
-    view.innerHTML = intro + '<div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Service</th><th class="num">From</th><th>Visible</th><th></th></tr></thead><tbody>' +
-      S.services.map((s) => '<tr><td>' + s.display_order + "</td><td><strong>" + esc(nm(s.name)) + "</strong>" + (s.featured ? ' <span class="pill blue">Home</span>' : "") + '</td><td class="num">' + (s.price ? money(s.price, s.currency) : "—") + '</td><td><label class="switch"><input type="checkbox" data-svc-toggle="' + esc(s.id) + '"' + (s.available ? " checked" : "") + ' aria-label="Visible ' + esc(nm(s.name)) + '"><span></span></label></td><td><div class="row-actions"><button type="button" class="icon-btn" data-action="edit-service" data-id="' + esc(s.id) + '" aria-label="Edit">' + icon("edit") + '</button><button type="button" class="icon-btn danger" data-action="del-service" data-id="' + esc(s.id) + '" aria-label="Delete">' + icon("trash") + "</button></div></td></tr>").join("") + "</tbody></table></div>";
+    view.innerHTML = intro + '<div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Service</th><th class="num">From</th><th>Published</th><th></th></tr></thead><tbody>' +
+      S.services.map((s, i) => '<tr><td><div class="row-actions" style="justify-content:flex-start"><button type="button" class="icon-btn" data-action="move-service" data-id="' + esc(s.id) + '" data-dir="-1" aria-label="Move up"' + (i === 0 ? " disabled" : "") + '>↑</button><button type="button" class="icon-btn" data-action="move-service" data-id="' + esc(s.id) + '" data-dir="1" aria-label="Move down"' + (i === S.services.length - 1 ? " disabled" : "") + '>↓</button></div></td><td><strong>' + esc(nm(s.name)) + "</strong>" + (s.featured ? ' <span class="pill blue">Home</span>' : "") + '</td><td class="num">' + (s.price_label ? esc(nm(s.price_label)) : s.price ? money(s.price, s.currency) : "—") + '</td><td><label class="switch"><input type="checkbox" data-svc-toggle="' + esc(s.id) + '"' + (s.available ? " checked" : "") + ' aria-label="Visible ' + esc(nm(s.name)) + '"><span></span></label></td><td><div class="row-actions"><button type="button" class="icon-btn" data-action="edit-service" data-id="' + esc(s.id) + '" aria-label="Edit">' + icon("edit") + '</button><button type="button" class="icon-btn danger" data-action="del-service" data-id="' + esc(s.id) + '" aria-label="Delete">' + icon("trash") + "</button></div></td></tr>").join("") + "</tbody></table></div>";
   }
   function serviceForm(s) {
     const isNew = !s;
     s = s || { id: "", name: { sq: "", en: "" }, description: { sq: "", en: "" }, price: 0, currency: defaultCurrency(), icon: "server", featured: false, display_order: S.services.length + 1, available: true };
     const v = (x) => esc(x === null || x === undefined ? "" : x);
+    const v6 = isNew ? S.projects !== null : !!s._v6;          // portfolio migration installed?
+    const sst = { cover: s.cover_image || "", uploaded: [], initial: [s.cover_image].filter(Boolean), saved: false };
+    const pl = s.price_label || { sq: "", en: "" };
+    const linked = (S.projects || []).filter((p) => (p.services || []).includes(s.id)).map((p) => p.id);
+    const extra = v6 ? '<fieldset class="fieldset"><legend>Optional extras</legend><div class="form-row"><div class="form-group"><label for="s-pl-sq">Price label (Albanian)</label><input id="s-pl-sq" maxlength="60" placeholder="e.g. Sipas marrëveshjes" value="' + v(pl.sq) + '"></div><div class="form-group"><label for="s-pl-en">Price label (English)</label><input id="s-pl-en" maxlength="60" placeholder="e.g. On request" value="' + v(pl.en) + '"></div></div><div class="help" style="margin:-.25rem 0 .9rem">If set, this text replaces the “from” price on the website.</div>' +
+      '<label class="help" style="display:block;margin-bottom:.4rem">Cover image (optional)</label><div id="s-cover"></div><div class="help" style="margin:.4rem 0 1rem">JPG, PNG or WebP, up to 5 MB.</div>' +
+      (S.projects !== null ? '<div class="form-group"><label>Related portfolio projects</label>' + (S.projects.length ? projectsSorted().map((p) => '<label class="check-line"><input type="checkbox" data-rel="' + v(p.id) + '"' + (linked.includes(p.id) ? " checked" : "") + ">" + esc(nm(p.title)) + ' <span class="muted small">(' + esc(p.status) + ")</span></label>").join("") : '<div class="help">Add projects in the Portfolio section first.</div>') + "</div>" : "") + "</fieldset>" : "";
     const dr = drawer(isNew ? "New service" : "Edit service",
       '<form id="sform" novalidate><div class="form-row"><div class="form-group"><label for="s-sq">Name (Albanian)</label><input id="s-sq" value="' + v(s.name.sq) + '" maxlength="80"></div><div class="form-group"><label for="s-en">Name (English)</label><input id="s-en" value="' + v(s.name.en) + '" maxlength="80"></div></div>' +
       '<div class="form-group"><label for="s-dsq">Description (Albanian)</label><textarea id="s-dsq" rows="3" maxlength="400">' + v(s.description.sq) + '</textarea></div><div class="form-group"><label for="s-den">Description (English)</label><textarea id="s-den" rows="3" maxlength="400">' + v(s.description.en) + "</textarea></div>" +
       '<div class="form-row"><div class="form-group"><label for="s-price">Starting price (0 = hide)</label><input id="s-price" inputmode="decimal" value="' + v(s.price) + '"></div><div class="form-group"><label for="s-cur">Currency</label><select id="s-cur">' + ["USD", "EUR", "ALL"].map((c) => "<option" + (s.currency === c ? " selected" : "") + ">" + c + "</option>").join("") + '</select></div><div class="form-group"><label for="s-order">Display order</label><input id="s-order" type="number" step="1" value="' + v(s.display_order) + '"></div></div>' +
-      '<div class="form-group"><label for="s-icon">Icon</label><select id="s-icon">' + SERVICE_ICONS.map((i) => "<option" + (s.icon === i ? " selected" : "") + ">" + i + "</option>").join("") + "</select></div>" +
-      '<label class="check-line"><span class="switch"><input type="checkbox" id="s-feat"' + (s.featured ? " checked" : "") + '><span></span></span>Show on the home page</label><label class="check-line"><span class="switch"><input type="checkbox" id="s-av"' + (s.available ? " checked" : "") + "><span></span></span>Visible</label></form>",
+      '<div class="form-group"><label for="s-icon">Icon</label><select id="s-icon">' + SERVICE_ICONS.map((i) => "<option" + (s.icon === i ? " selected" : "") + ">" + i + "</option>").join("") + "</select></div>" + extra +
+      '<label class="check-line"><span class="switch"><input type="checkbox" id="s-feat"' + (s.featured ? " checked" : "") + '><span></span></span>Show on the home page</label><label class="check-line"><span class="switch"><input type="checkbox" id="s-av"' + (s.available ? " checked" : "") + "><span></span></span>Published (visible on the website)</label></form>",
       '<button type="button" class="button button-outline" data-close2>Cancel</button><button type="button" class="button" id="s-save">Save</button>');
     $("[data-close2]", dr.el).addEventListener("click", dr.close);
+    if (v6) {
+      singleImageField(dr.el, "#s-cover", sst, "cover", "Add cover image");
+      new MutationObserver(function () { if (!dr.el.isConnected) { this.disconnect(); if (!sst.saved && sst.uploaded.length) cleanupImages(sst.uploaded); } }).observe($("#drawer-root"), { childList: true });
+    }
     $("#s-save", dr.el).addEventListener("click", async (ev) => {
       const g = (id) => $("#" + id, dr.el).value.trim();
       let sq = g("s-sq"), en = g("s-en");
@@ -502,15 +551,260 @@
       if (isNew) { id = slug(en) || "service"; const b = id; while (S.services.some((x) => x.id === id)) id = b + "-" + Math.random().toString(36).slice(2, 5); }
       busy(ev.currentTarget, true);
       try {
-        await SupabaseClient.upsertService({ id, name: { sq, en }, description: { sq: g("s-dsq") || g("s-den"), en: g("s-den") || g("s-dsq") }, price, currency: g("s-cur"), icon: g("s-icon"), featured: $("#s-feat", dr.el).checked, display_order: parseInt(g("s-order") || "0", 10) || 0, available: $("#s-av", dr.el).checked });
+        const row = { id, name: { sq, en }, description: { sq: g("s-dsq") || g("s-den"), en: g("s-den") || g("s-dsq") }, price, currency: g("s-cur"), icon: g("s-icon"), featured: $("#s-feat", dr.el).checked, display_order: parseInt(g("s-order") || "0", 10) || 0, available: $("#s-av", dr.el).checked };
+        if (v6) {
+          const psq = g("s-pl-sq"), pen = g("s-pl-en");
+          row._v6 = true; row.cover_image = sst.cover || ""; row.price_label = (psq || pen) ? { sq: psq || pen, en: pen || psq } : null;
+        }
+        await SupabaseClient.upsertService(row);
+        if (v6 && S.projects !== null) await SupabaseClient.setServiceProjects(id, $$("[data-rel]:checked", dr.el).map((x) => x.dataset.rel));
+        if (v6) { sst.saved = true; await cleanupImages(sst.initial.concat(sst.uploaded).filter((u, i, a) => a.indexOf(u) === i && u !== sst.cover)); }
+        if (v6 && S.projects !== null) await reload("projects");
         ok("Service saved"); dr.close(); await reload("services"); render();
       } catch (e) { fail(e, "Could not save the service"); busy(ev.currentTarget, false); }
     });
   }
   async function deleteService(id) {
     if (!(await confirmBox("Delete this service?", "It will be removed from the website.", "Delete", true))) return;
-    try { await SupabaseClient.deleteService(id); ok("Service deleted"); await reload("services"); render(); }
+    try { const sv = S.services.find((x) => x.id === id); await SupabaseClient.deleteService(id); if (sv && sv.cover_image) SupabaseClient.deletePortfolioImage(sv.cover_image); ok("Service deleted"); await reload("services"); render(); }
     catch (e) { fail(e, "Could not delete the service"); }
+  }
+
+  /* ── Portfolio ──────────────────────────────────────────────────────
+     Company projects shown on the public Projects page. Only "Published" projects are visible to
+     visitors (enforced by the database). Archiving is preferred over deleting. */
+  const PJ_STATUS = [["published", "Published", "green"], ["draft", "Draft", "amber"], ["archived", "Archived", ""]];
+  const PJ_PROGRESS = [["completed", "Completed"], ["ongoing", "In progress"], ["maintained", "Maintained by us"]];
+  const PJ_CATS = [["Website", "Website"], ["Web application", "Aplikacion web"], ["Software", "Softuer"], ["Networking", "Rrjet"], ["Infrastructure", "Infrastrukturë"], ["IT support", "Mbështetje IT"], ["Other", "Tjetër"]];
+  const MAX_GALLERY = 11;
+  const projectsSorted = () => (S.projects || []).slice().sort((a, b) => a.display_order - b.display_order || nm(a.title).localeCompare(nm(b.title)));
+  const hasText = (o) => !!(o && (String(o.en || "").trim() || String(o.sq || "").trim()));
+
+  function viewPortfolio(view, actions) {
+    if (S.projects === null) { view.innerHTML = '<div class="card"><div class="empty">The portfolio is not installed yet.<br>Run <strong>supabase-migration-v6-portfolio.sql</strong> in Supabase (on a staging project first), then reload this page.</div></div>'; return; }
+    actions.innerHTML = '<button type="button" class="button" data-action="new-project">' + icon("plus") + " Add project</button>";
+    const count = (st) => S.projects.filter((p) => p.status === st).length;
+    view.innerHTML =
+      '<p class="muted" style="margin-top:0;max-width:70ch">Projects you <strong>publish</strong> appear on the public Projects page. Drafts and archived projects are never shown to visitors. Only add real work — nothing here is pre-filled.</p>' +
+      '<div class="toolbar"><input id="pj-q" type="search" placeholder="Search projects" aria-label="Search projects" value="' + esc(S.pj.q) + '"><select id="pj-s" aria-label="Status"><option value="">All statuses</option>' +
+      PJ_STATUS.map((s) => '<option value="' + s[0] + '"' + (S.pj.status === s[0] ? " selected" : "") + ">" + s[1] + " (" + count(s[0]) + ")</option>").join("") + '</select></div><div id="pj-list"></div>';
+    $("#pj-q").addEventListener("input", (e) => { S.pj.q = e.target.value; drawProjectRows(); });
+    $("#pj-s").addEventListener("change", (e) => { S.pj.status = e.target.value; drawProjectRows(); });
+    drawProjectRows();
+  }
+  function drawProjectRows() {
+    const box = $("#pj-list"); if (!box) return;
+    const q = norm(S.pj.q);
+    const list = projectsSorted().filter((p) => (!S.pj.status || p.status === S.pj.status) && (!q || norm(nm(p.title) + " " + (p.title.sq || "") + " " + nm(p.category)).includes(q)));
+    if (!list.length) { box.innerHTML = '<div class="card"><div class="empty">' + (S.projects.length ? "No projects match." : "No projects yet. Use “Add project” to add your first real project.") + "</div></div>"; return; }
+    box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Project</th><th>Category</th><th>Status</th><th></th></tr></thead><tbody>' +
+      list.map((p, i) => {
+        const id = esc(p.id);
+        const thumb = PortfolioView.safeUrl(p.cover_image) ? '<img class="thumb" src="' + esc(p.cover_image) + '" alt="">' : '<span class="thumb">' + icon("image") + "</span>";
+        const toggle = p.status === "published" ? ["unpublish-project", "Unpublish"] : p.status === "draft" ? ["publish-project", "Publish"] : ["restore-project", "Restore"];
+        return "<tr><td><div class=\"row-actions\" style=\"justify-content:flex-start\"><button type=\"button\" class=\"icon-btn\" data-action=\"move-project\" data-id=\"" + id + '" data-dir="-1" aria-label="Move up"' + (i === 0 ? " disabled" : "") + ">↑</button><button type=\"button\" class=\"icon-btn\" data-action=\"move-project\" data-id=\"" + id + '" data-dir="1" aria-label="Move down"' + (i === list.length - 1 ? " disabled" : "") + ">↓</button></div></td>" +
+          '<td><div style="display:flex;gap:.7rem;align-items:center">' + thumb + "<div><strong>" + esc(nm(p.title)) + "</strong>" + (p.featured ? ' <span class="pill blue">Featured</span>' : "") + '<br><small class="muted">' + esc(p.url || "no public link") + "</small></div></div></td>" +
+          "<td>" + esc(nm(p.category)) + "</td><td>" + pill(p.status, PJ_STATUS) + '</td><td><div class="row-actions">' +
+          '<button type="button" class="button button-outline button-sm" data-action="preview-project" data-id="' + id + '">Preview</button>' +
+          '<button type="button" class="button button-outline button-sm" data-action="' + toggle[0] + '" data-id="' + id + '">' + toggle[1] + "</button>" +
+          '<button type="button" class="icon-btn" data-action="edit-project" data-id="' + id + '" aria-label="Edit">' + icon("edit") + "</button>" +
+          (p.status !== "archived" ? '<button type="button" class="button button-outline button-sm" data-action="archive-project" data-id="' + id + '">Archive</button>' : "") +
+          (p.status === "archived" && isAdmin() ? '<button type="button" class="icon-btn danger" data-action="del-project" data-id="' + id + '" aria-label="Delete permanently">' + icon("trash") + "</button>" : "") +
+          "</div></td></tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+
+  async function moveProject(id, dir) {
+    const q = norm(S.pj.q);
+    const vis = projectsSorted().filter((p) => (!S.pj.status || p.status === S.pj.status) && (!q || norm(nm(p.title) + " " + (p.title.sq || "") + " " + nm(p.category)).includes(q))).map((p) => p.id);
+    const i = vis.indexOf(id), j = i + dir;
+    if (i < 0 || j < 0 || j >= vis.length) return;
+    const full = projectsSorted().map((p) => p.id);
+    const a = full.indexOf(vis[i]), b = full.indexOf(vis[j]);
+    [full[a], full[b]] = [full[b], full[a]];
+    try { await SupabaseClient.reorderProjects(full); await reload("projects"); drawProjectRows(); }
+    catch (e) { fail(e, "Could not change the order"); }
+  }
+  async function moveService(id, dir) {
+    const full = S.services.slice().sort((a, b) => a.display_order - b.display_order).map((s) => s.id);
+    const i = full.indexOf(id), j = i + dir;
+    if (i < 0 || j < 0 || j >= full.length) return;
+    [full[i], full[j]] = [full[j], full[i]];
+    try { await SupabaseClient.reorderServices(full); await reload("services"); render(); }
+    catch (e) { fail(e, "Could not change the order"); }
+  }
+
+  async function changeProjectStatus(id, status) {
+    const p = S.projects.find((x) => x.id === id); if (!p) return;
+    if (status === "published" && (!hasText(p.title) || !hasText(p.summary))) { toast("error", "Add a title and a short description before publishing"); return; }
+    if (status === "archived" && !(await confirmBox("Archive this project?", "“" + nm(p.title) + "” will disappear from the public website but stays here. You can restore it later as a draft.", "Archive", false))) return;
+    try {
+      await SupabaseClient.setProjectStatus(id, status);
+      ok(status === "published" ? "Published — it is now visible on the website" : status === "archived" ? "Archived" : "Saved as draft");
+      await reload("projects"); drawProjectRows();
+    } catch (e) { fail(e, "Could not change the status"); }
+  }
+
+  async function deleteProject(id) {
+    const p = S.projects.find((x) => x.id === id); if (!p) return;
+    if (p.status !== "archived") { toast("info", "Archive the project first. Only archived projects can be deleted."); return; }
+    if (!(await confirmBox("Delete this project permanently?", "“" + nm(p.title) + "” and its uploaded images will be erased for good. This cannot be undone. Keeping it archived is safer.", "Delete permanently", true))) return;
+    try {
+      await SupabaseClient.deleteProject(id);
+      await Promise.all([p.cover_image].concat(p.images).filter(Boolean).map((u) => SupabaseClient.deletePortfolioImage(u)));
+      ok("Project deleted"); await reload("projects"); drawProjectRows();
+    } catch (e) { fail(e, "Could not delete the project"); }
+  }
+
+  /* One picture (cover): upload, replace or remove. st = { [key]: url, uploaded: [] }. */
+  function singleImageField(root, mount, st, key, label) {
+    const box = $(mount, root);
+    function draw() {
+      const u = st[key];
+      box.innerHTML = u
+        ? '<div class="img-tile" style="max-width:220px"><img src="' + esc(u) + '" alt=""><div class="tile-actions"><label class="link-btn" style="color:#fff;cursor:pointer">Replace<input type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" data-rm-single>Remove</button></div></div>'
+        : '<label class="dropzone" style="max-width:220px">' + icon("upload") + "<span>" + esc(label) + '</span><input type="file" accept="image/jpeg,image/png,image/webp"></label>';
+      const input = $("input[type=file]", box);
+      input.addEventListener("change", async () => {
+        const f = input.files[0]; input.value = ""; if (!f) return;
+        const chk = await SupabaseClient.checkImage(f);
+        if (!chk.ok) { toast("error", chk.reason); return; }
+        box.innerHTML = '<div class="dropzone" style="max-width:220px">Uploading…</div>';
+        try { const url = await SupabaseClient.uploadPortfolioImage(f); st.uploaded.push(url); st[key] = url; }
+        catch (e) { fail(e, "Upload failed"); }
+        draw();
+      });
+      const rm = $("[data-rm-single]", box);
+      if (rm) rm.addEventListener("click", () => { st[key] = ""; draw(); });
+    }
+    draw();
+  }
+  const cleanupImages = (urls) => Promise.all(urls.map((u) => SupabaseClient.deletePortfolioImage(u)));
+
+  function projectForm(p) {
+    const isNew = !p;
+    p = p || { id: "", title: { sq: "", en: "" }, category: { sq: "Tjetër", en: "Other" }, summary: { sq: "", en: "" }, description: { sq: "", en: "" }, cover_image: "", images: [], technologies: [], completed_on: "", project_status: "completed", url: "", featured: false, display_order: (S.projects.reduce((m, x) => Math.max(m, x.display_order), 0) + 1), status: "draft", services: [] };
+    const st = { cover: p.cover_image || "", images: p.images.slice(), uploading: 0, uploaded: [], initial: [p.cover_image].concat(p.images).filter(Boolean), saved: false };
+    const v = (x) => esc(x === null || x === undefined ? "" : x);
+    const known = [];
+    PJ_CATS.concat(S.projects.map((x) => [x.category.en, x.category.sq])).forEach((c) => { if (c[0] && !known.some((k) => k[0] === c[0])) known.push(c); });
+    const body = '<form id="pjform" novalidate>' +
+      '<fieldset class="fieldset"><legend>Title & category</legend><div class="form-row"><div class="form-group"><label for="pj-t-sq">Title (Albanian)</label><input id="pj-t-sq" maxlength="120" value="' + v(p.title.sq) + '"></div><div class="form-group"><label for="pj-t-en">Title (English)</label><input id="pj-t-en" maxlength="120" value="' + v(p.title.en) + '"></div></div>' +
+      '<div class="form-row"><div class="form-group"><label for="pj-c-pick">Category</label><select id="pj-c-pick"><option value="">Choose…</option>' + known.map((c, i) => '<option value="' + i + '">' + esc(c[0]) + "</option>").join("") + '</select></div><div class="form-group"><label for="pj-c-en">Category (English)</label><input id="pj-c-en" maxlength="60" value="' + v(p.category.en) + '"></div><div class="form-group"><label for="pj-c-sq">Category (Albanian)</label><input id="pj-c-sq" maxlength="60" value="' + v(p.category.sq) + '"></div></div></fieldset>' +
+      '<fieldset class="fieldset"><legend>Descriptions</legend><div class="form-group"><label for="pj-s-sq">Short description (Albanian)</label><textarea id="pj-s-sq" rows="2" maxlength="240">' + v(p.summary.sq) + '</textarea></div><div class="form-group"><label for="pj-s-en">Short description (English)</label><textarea id="pj-s-en" rows="2" maxlength="240">' + v(p.summary.en) + '</textarea><div class="help">Shown on the project card. Fill one language and the other is copied automatically.</div></div>' +
+      '<div class="form-group"><label for="pj-d-sq">Detailed description (Albanian)</label><textarea id="pj-d-sq" rows="5" maxlength="4000">' + v(p.description.sq) + '</textarea></div><div class="form-group"><label for="pj-d-en">Detailed description (English)</label><textarea id="pj-d-en" rows="5" maxlength="4000">' + v(p.description.en) + '</textarea><div class="help">Leave a blank line between paragraphs.</div></div></fieldset>' +
+      '<fieldset class="fieldset"><legend>Images</legend><label class="help" style="display:block;margin-bottom:.4rem">Cover image (thumbnail on the card and top of the page)</label><div id="pj-cover"></div>' +
+      '<label class="help" style="display:block;margin:1rem 0 .4rem">More images (up to ' + MAX_GALLERY + ')</label><div class="img-grid" id="pj-imgs"></div><div class="help" style="margin-top:.5rem">JPG, PNG or WebP, up to 5 MB each. Other file types are refused.</div></fieldset>' +
+      '<fieldset class="fieldset"><legend>Details</legend><div class="form-group"><label for="pj-tech">Technologies used</label><input id="pj-tech" maxlength="600" placeholder="e.g. HTML, JavaScript, Supabase" value="' + v(p.technologies.join(", ")) + '"><div class="help">Separate with commas.</div></div>' +
+      '<div class="form-group"><label>Services delivered</label>' + (S.services.length ? S.services.map((s) => '<label class="check-line"><input type="checkbox" data-svc="' + v(s.id) + '"' + (p.services.includes(s.id) ? " checked" : "") + ">" + esc(nm(s.name)) + (s.available ? "" : ' <span class="muted small">(unpublished)</span>') + "</label>").join("") : '<div class="help">Add services in the Services section first, then link them here.</div>') + "</div>" +
+      '<div class="form-row"><div class="form-group"><label for="pj-done">Completed (optional)</label><input id="pj-done" type="month" value="' + v((p.completed_on || "").slice(0, 7)) + '"></div><div class="form-group"><label for="pj-prog">Project state</label><select id="pj-prog">' + PJ_PROGRESS.map((o) => '<option value="' + o[0] + '"' + (p.project_status === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") + '</select></div></div>' +
+      '<div class="form-group"><label for="pj-url">Public project link (optional)</label><input id="pj-url" type="url" maxlength="300" placeholder="https://" value="' + v(p.url) + '"></div></fieldset>' +
+      '<fieldset class="fieldset"><legend>Publishing</legend><div class="form-row"><div class="form-group"><label for="pj-status">Status</label><select id="pj-status">' + PJ_STATUS.map((o) => '<option value="' + o[0] + '"' + (p.status === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") + '</select><div class="help">Only “Published” is visible to visitors.</div></div><div class="form-group"><label for="pj-order">Display order</label><input id="pj-order" type="number" step="1" value="' + v(p.display_order) + '"></div></div>' +
+      '<label class="check-line"><span class="switch"><input type="checkbox" id="pj-feat"' + (p.featured ? " checked" : "") + "><span></span></span>Featured (listed first, with a badge)</label></fieldset></form>";
+    const dr = drawer(isNew ? "New project" : "Edit project", body,
+      '<button type="button" class="button button-outline" data-close2>Cancel</button><button type="button" class="button button-outline" id="pj-preview">Preview</button><button type="button" class="button" id="pj-save">Save</button>');
+    const root = dr.el;
+    $("[data-close2]", root).addEventListener("click", dr.close);
+    new MutationObserver(function () { if (!dr.el.isConnected) { this.disconnect(); if (!st.saved && st.uploaded.length) cleanupImages(st.uploaded); } }).observe($("#drawer-root"), { childList: true });
+
+    $("#pj-c-pick", root).addEventListener("change", (e) => { const c = known[+e.target.value]; if (c) { $("#pj-c-en", root).value = c[0]; $("#pj-c-sq", root).value = c[1]; } });
+    singleImageField(root, "#pj-cover", st, "cover", "Add cover image");
+    function drawGallery() {
+      const g = $("#pj-imgs", root);
+      g.innerHTML = st.images.map((u, i) => '<div class="img-tile"><img src="' + esc(u) + '" alt=""><div class="tile-actions"><button type="button" data-cover="' + i + '">Make cover</button><button type="button" data-rm="' + i + '">Remove</button></div></div>').join("") +
+        Array.from({ length: st.uploading }, () => '<div class="img-tile"><span class="dropzone" style="height:100%;border:0">Uploading…</span></div>').join("") +
+        (st.images.length + st.uploading < MAX_GALLERY ? '<label class="dropzone">' + icon("upload") + '<span>Add images</span><input type="file" multiple accept="image/jpeg,image/png,image/webp"></label>' : "");
+      const input = $("input[type=file]", g);
+      if (input) input.addEventListener("change", () => { const fs = [...input.files]; input.value = ""; upload(fs); });
+    }
+    async function upload(files) {
+      for (const f of files) {
+        if (st.images.length + st.uploading >= MAX_GALLERY) { toast("error", "You can add up to " + MAX_GALLERY + " more images"); break; }
+        const chk = await SupabaseClient.checkImage(f);
+        if (!chk.ok) { toast("error", chk.reason); continue; }
+        st.uploading++; drawGallery();
+        try { const url = await SupabaseClient.uploadPortfolioImage(f); st.uploaded.push(url); st.images.push(url); }
+        catch (e) { fail(e, "Upload failed for " + f.name); }
+        st.uploading--; drawGallery();
+      }
+    }
+    $("#pj-imgs", root).addEventListener("click", (e) => {
+      const r = e.target.closest("[data-rm]"), c = e.target.closest("[data-cover]");
+      if (r) { st.images.splice(+r.dataset.rm, 1); drawGallery(); }
+      if (c) { const u = st.images.splice(+c.dataset.cover, 1)[0]; if (st.cover) st.images.unshift(st.cover); st.cover = u; singleImageField(root, "#pj-cover", st, "cover", "Add cover image"); drawGallery(); }
+    });
+    drawGallery();
+
+    function read() {
+      const g = (id) => $("#" + id, root).value.trim();
+      const pair = (a, b, fb) => { let sq = g(a), en = g(b); if (!sq && !en && fb) { sq = fb.sq; en = fb.en; } return { sq: sq || en, en: en || sq }; };
+      const tech = []; g("pj-tech").split(/[,;\n]/).map((x) => x.trim().slice(0, 40)).filter(Boolean).forEach((x) => { if (!tech.some((t) => t.toLowerCase() === x.toLowerCase())) tech.push(x); });
+      const done = g("pj-done");
+      return {
+        id: p.id, title: pair("pj-t-sq", "pj-t-en"), category: pair("pj-c-sq", "pj-c-en", { sq: "Tjetër", en: "Other" }),
+        summary: pair("pj-s-sq", "pj-s-en"), description: pair("pj-d-sq", "pj-d-en"),
+        cover_image: st.cover || "", images: st.images.slice(), technologies: tech.slice(0, 30),
+        completed_on: done ? done + "-01" : "", project_status: g("pj-prog"), url: g("pj-url"), featured: $("#pj-feat", root).checked,
+        display_order: parseInt(g("pj-order") || "0", 10) || 0, status: g("pj-status"),
+        services: $$("[data-svc]:checked", root).map((x) => x.dataset.svc)
+      };
+    }
+    $("#pj-preview", root).addEventListener("click", () => previewProject(read()));
+    $("#pj-save", root).addEventListener("click", async (ev) => {
+      if (st.uploading) { toast("error", "Wait for the images to finish uploading"); return; }
+      const d = read();
+      if (!hasText(d.title)) { toast("error", "Enter a project title"); $("#pj-t-en", root).focus(); return; }
+      if (d.status === "published" && !hasText(d.summary)) { toast("error", "Add a short description before publishing"); $("#pj-s-en", root).focus(); return; }
+      if (d.url) { let ok2 = false; try { const u = new URL(d.url); ok2 = /^https?:$/.test(u.protocol) && !/\s/.test(d.url); } catch { ok2 = false; } if (!ok2) { toast("error", "The project link must start with https:// (or http://)"); $("#pj-url", root).focus(); return; } }
+      if (isNew) { const base = slug(d.title.en) || "project"; let id = base; while (S.projects.some((x) => x.id === id)) id = base + "-" + Math.random().toString(36).slice(2, 5); d.id = id; }
+      busy(ev.currentTarget, true);
+      try {
+        await SupabaseClient.upsertProject(d, d.services);
+        st.saved = true;
+        const used = new Set([d.cover_image].concat(d.images));
+        await cleanupImages(st.initial.concat(st.uploaded).filter((u, i, a) => a.indexOf(u) === i && !used.has(u)));
+        ok(isNew ? "Project added" : "Project saved");
+        dr.close(); await reload("projects"); render();
+      } catch (e) { fail(e, "Could not save the project"); busy(ev.currentTarget, false); }
+    });
+  }
+
+  /* Preview exactly what visitors would see (same renderer and stylesheet as the public site). */
+  function previewProject(p) {
+    let lang = "sq", mode = "card", width = "desktop";
+    const bg = document.createElement("div");
+    bg.className = "pv-bg";
+    bg.innerHTML = '<div class="pv-bar"><strong>Preview</strong><span class="pill ' + ((PJ_STATUS.find((s) => s[0] === p.status) || [])[2] || "") + '">' + esc((PJ_STATUS.find((s) => s[0] === p.status) || ["", p.status])[1]) + "</span>" +
+      '<span class="muted small">' + (p.status === "published" ? "Visible to visitors" : "Not visible to visitors until published") + '</span><span class="pv-spacer"></span>' +
+      '<div class="pv-seg" data-g="mode"><button type="button" data-v="card" aria-pressed="true">Card</button><button type="button" data-v="page" aria-pressed="false">Project page</button></div>' +
+      '<div class="pv-seg" data-g="lang"><button type="button" data-v="sq" aria-pressed="true">SQ</button><button type="button" data-v="en" aria-pressed="false">EN</button></div>' +
+      '<div class="pv-seg" data-g="width"><button type="button" data-v="desktop" aria-pressed="true">Desktop</button><button type="button" data-v="mobile" aria-pressed="false">Mobile</button></div>' +
+      '<button type="button" class="button button-sm" data-pv-close>Close</button></div><div class="pv-stage"><iframe class="pv-frame" sandbox="" title="Project preview"></iframe></div>';
+    document.body.appendChild(bg);
+    const frame = $("iframe", bg);
+    const services = (p.services || []).map((id) => S.services.find((s) => s.id === id)).filter(Boolean);
+    function draw() {
+      const tx = (typeof translations !== "undefined" && translations[lang]) || {};
+      const h = { esc, loc: (x) => (x && (x[lang] || x.en || x.sq)) || "", t: (k) => tx[k] || k, lang };
+      const inner = mode === "card"
+        ? '<div class="project-grid" style="grid-template-columns:minmax(0,420px)">' + PortfolioView.card(p, h, { href: "#" }) + "</div>"
+        : PortfolioView.detail(p, h, services);
+      frame.style.width = width === "mobile" ? "390px" : "100%";
+      frame.srcdoc = '<!doctype html><html lang="' + lang + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="' + esc(new URL(".", location.href).href) + '"><link rel="stylesheet" href="style.css"></head><body style="background:#fff"><main><section class="section"><div class="container">' + inner + "</div></section></main></body></html>";
+    }
+    const close = () => { bg.remove(); document.removeEventListener("keydown", onKey, true); };
+    const onKey = (e) => { if (e.key === "Escape" && !$(".confirm-bg")) { e.stopPropagation(); close(); } };
+    document.addEventListener("keydown", onKey, true);
+    bg.addEventListener("click", (e) => {
+      if (e.target.closest("[data-pv-close]")) { close(); return; }
+      const b = e.target.closest(".pv-seg button"); if (!b) return;
+      const g = b.parentElement.dataset.g, val = b.dataset.v;
+      if (g === "mode") mode = val; else if (g === "lang") lang = val; else width = val;
+      $$("button", b.parentElement).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      draw();
+    });
+    draw();
+    $("[data-pv-close]", bg).focus();
   }
 
   /* ── Orders ─────────────────────────────────────────────────────── */
@@ -550,6 +844,40 @@
       try { await SupabaseClient.updateOrderStatus(o.id, status); ok("Order updated"); dr.close(); await Promise.all([reload("orders"), reload("catalog")]); render(); }
       catch (e) { fail(e, "Could not update the order"); busy(ev.currentTarget, false); }
     });
+  }
+
+  /* ── Notifications (admin only) ─────────────────────────────────── */
+  async function viewNotifications(view) {
+    const missing = () => { view.innerHTML = '<div class="card"><div class="empty">Order e-mail notifications are not installed yet.<br>Run <strong>supabase-migration-v5-notifications.sql</strong> in Supabase, then follow <strong>NOTIFICATIONS.md</strong>.</div></div>'; };
+    if (S.notifications === null) { missing(); return; }
+    view.innerHTML = '<div class="empty">Loading…</div>';
+    await reload("notifications");
+    if (S.section !== "notifications") return;
+    if (S.notifications === null) { missing(); return; }
+    const all = S.notifications.filter((n) => !S.nf.status || n.status === S.nf.status);
+    const npg = pager("notifications", all.length);
+    const rows = npg.rows(all);
+    const orderExists = (n) => S.orders.some((o) => String(o.id) === String(n.order_id));
+    const ref = (n) => esc(n.order_number || "#" + n.order_id);
+    const detail = (n) => n.status === "sent" ? "Accepted by the e-mail service" : n.status === "failed" ? "Next try " + esc(fmtDate(n.next_attempt_at)) + (n.last_error ? " · " + esc(n.last_error) : "") : n.status === "dead" ? "Gave up after " + n.attempts + " tries" + (n.last_error ? " · " + esc(n.last_error) : "") : n.status === "sending" ? "In progress" : "Waiting for the next send";
+    view.innerHTML =
+      '<p class="muted" style="margin-top:0">Every new order is e-mailed to your notification address by the server. <strong>Sent</strong> means the e-mail service accepted the message. A <strong>Failed</strong> notification used all automatic retries — fix the cause, then press Retry. Cash-on-delivery orders are never reported as paid.</p>' +
+      '<div class="toolbar"><select id="nf-s" aria-label="Status"><option value="">All statuses</option>' + NOTIF_STATUS.map((s) => '<option value="' + s[0] + '"' + (S.nf.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></div>" +
+      (rows.length ? '<div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Event</th><th>Status</th><th>Details</th><th>Created</th><th>Sent</th><th></th></tr></thead><tbody>' +
+        rows.map((n) => "<tr><td><strong>" + (orderExists(n) ? '<button type="button" class="link-btn" data-action="open-order" data-id="' + esc(n.order_id) + '">' + ref(n) + "</button>" : ref(n)) + "</strong></td><td>" + esc(NOTIF_EVENT[n.event_type] || n.event_type) + "</td><td>" + pill(n.status, NOTIF_STATUS) + "</td><td>" + detail(n) + "</td><td>" + esc(fmtDate(n.created_at)) + "</td><td>" + esc(fmtDate(n.sent_at)) + "</td><td>" +
+          (n.status === "failed" || n.status === "dead" ? '<button type="button" class="button button-outline button-sm" data-action="retry-notification" data-id="' + esc(n.id) + '">Retry</button>' : "") + "</td></tr>").join("") +
+        "</tbody></table></div>" + npg.html
+        : '<div class="card"><div class="empty">' + (S.notifications.length ? "No notifications match." : "No notifications yet. They appear here after the next customer order.") + "</div></div>");
+    $("#nf-s").addEventListener("change", (e) => { S.nf.status = e.target.value; S.pg.notifications = 1; viewNotifications(view); });
+  }
+
+  async function retryNotification(id, btn) {
+    busy(btn, true);
+    try {
+      const done = await SupabaseClient.retryNotification(id);
+      if (done) ok("Queued again — the next scheduled run will send it"); else toast("info", "Nothing to retry (it may already have been sent).");
+      await reload("notifications"); render();
+    } catch (e) { fail(e, "Could not queue the notification again"); busy(btn, false); }
   }
 
   /* ── Enquiries ──────────────────────────────────────────────────── */
@@ -702,11 +1030,22 @@
       case "new-category": categoryForm(null); break;
       case "edit-category": categoryForm(S.categories.find((c) => c.id === id)); break;
       case "del-category": deleteCategory(id); break;
+      case "new-project": projectForm(null); break;
+      case "edit-project": projectForm(S.projects.find((p) => p.id === id)); break;
+      case "preview-project": previewProject(S.projects.find((p) => p.id === id)); break;
+      case "publish-project": changeProjectStatus(id, "published"); break;
+      case "unpublish-project": changeProjectStatus(id, "draft"); break;
+      case "restore-project": changeProjectStatus(id, "draft"); break;
+      case "archive-project": changeProjectStatus(id, "archived"); break;
+      case "del-project": deleteProject(id); break;
+      case "move-project": moveProject(id, parseInt(a.dataset.dir, 10)); break;
+      case "move-service": moveService(id, parseInt(a.dataset.dir, 10)); break;
       case "new-service": serviceForm(null); break;
       case "edit-service": serviceForm(S.services.find((s) => s.id === id)); break;
       case "del-service": deleteService(id); break;
       case "open-order": orderDetail(id); break;
       case "open-inquiry": inquiryDetail(id); break;
+      case "retry-notification": retryNotification(Number(id), a); break;
       case "export": exportBackup(); break;
       case "csv-products": downloadCsv("subcore-products", ["ID", "Name (EN)", "Name (SQ)", "Category", "Brand", "SKU", "Price", "Compare price", "Currency", "Stock", "Visible", "Featured"],
         filteredProducts().map((p) => [p.id, p.name.en, p.name.sq, catName(p.category), p.brand, p.sku, p.price, p.compare_price, p.currency, p.stock, p.available ? "yes" : "no", p.featured ? "yes" : "no"])); break;

@@ -6,22 +6,32 @@
   const homeGrid = document.getElementById("home-services");
   const pageGrid = document.getElementById("services-grid");
   let services = null; // null until the database answers
+  let portfolio = [];  // published projects (empty until the portfolio migration is installed)
 
   const iconFor = (s) => (ICONS.includes(s.icon) ? s.icon : "server");
 
   function cardHtml(s, withRequest) {
     const id = escapeHtml(s.id);
-    const price = s.price > 0
-      ? '<span class="service-price"><small>' + escapeHtml(tr("services.from")) + "</small>" + escapeHtml(money(s.price, s.currency)) + "</span>"
-      : "";
+    const label = s.price_label ? loc(s.price_label) : "";
+    const price = label
+      ? '<span class="service-price">' + escapeHtml(label) + "</span>"
+      : s.price > 0
+        ? '<span class="service-price"><small>' + escapeHtml(tr("services.from")) + "</small>" + escapeHtml(money(s.price, s.currency)) + "</span>"
+        : "";
+    const cover = /^https:\/\/[^\s"'<>]+$/.test(s.cover_image || "")
+      ? '<div class="service-cover"><img src="' + escapeHtml(s.cover_image) + '" alt="" loading="lazy" decoding="async"></div>' : "";
+    const related = withRequest ? portfolio.filter((p) => (p.services || []).includes(s.id)) : [];
+    const relatedHtml = related.length
+      ? '<div class="service-projects"><span>' + escapeHtml(tr("projects.related")) + ":</span>" +
+        related.map((p) => '<a href="project.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(loc(p.title)) + "</a>").join("") + "</div>" : "";
     const action = withRequest
       ? '<button type="button" class="button button-outline button-sm" data-request="' + id + '">' + escapeHtml(tr("services.request")) + "</button>"
       : '<a class="text-link" href="contact.html?service=' + encodeURIComponent(s.id) + '">' + escapeHtml(tr("services.learnmore")) +
         '<svg class="icon" aria-hidden="true"><use href="icons.svg#arrow-right"/></svg></a>';
-    return '<article class="service-card" id="' + id + '">' +
+    return '<article class="service-card" id="' + id + '">' + cover +
       '<span class="icon-box"><svg class="icon" aria-hidden="true"><use href="icons.svg#' + iconFor(s) + '"/></svg></span>' +
       "<h3>" + escapeHtml(loc(s.name)) + "</h3>" +
-      "<p>" + escapeHtml(loc(s.description)) + "</p>" +
+      "<p>" + escapeHtml(loc(s.description)) + "</p>" + relatedHtml +
       '<div class="service-foot">' + action + price + "</div></article>";
   }
 
@@ -40,6 +50,8 @@
     try {
       const rows = await SupabaseClient.fetchServices();
       services = rows.filter((s) => s.available);
+      // Related projects are optional: a failure here must never affect the services list.
+      try { portfolio = ((await SupabaseClient.fetchProjects()) || []).filter((p) => p.status === "published"); } catch { portfolio = []; }
       render();
     } catch (err) {
       console.warn("Services from database unavailable, using built-in list.", err.message);

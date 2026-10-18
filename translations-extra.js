@@ -4,6 +4,7 @@
   const extra = {
     en: {
       /* navigation & shared */
+      "nav.projects": "Projects",
       "nav.menu": "Menu",
       "nav.quote": "Get a quote",
       "nav.skip": "Skip to main content",
@@ -305,6 +306,7 @@
     },
 
     sq: {
+      "nav.projects": "Projektet",
       "nav.menu": "Menuja",
       "nav.quote": "Kërko ofertë",
       "nav.skip": "Kalo te përmbajtja",

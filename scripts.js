@@ -228,8 +228,8 @@ function initContactForm() {
       const body = "Name: " + name + "\nEmail: " + email + (phone ? "\nPhone: " + phone : "") + (service ? "\nService: " + service : "") + "\n\n" + message;
       FormUtil.status(status, "error", tr("form.error"));
       const a = document.createElement("a");
-      a.href = "mailto:info@subcoresolutions.online?subject=" + encodeURIComponent("Website contact - " + name) + "&body=" + encodeURIComponent(body);
-      a.textContent = " info@subcoresolutions.online";
+      a.href = "mailto:info.subcoresolutions@gmail.com?subject=" + encodeURIComponent("Website contact - " + name) + "&body=" + encodeURIComponent(body);
+      a.textContent = " info.subcoresolutions@gmail.com";
       status.appendChild(a);
     }
   });

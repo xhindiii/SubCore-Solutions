@@ -35,4 +35,4 @@ Last reviewed: 9 Oct 2026. Scope: this repository (static site + Supabase). Noth
 
 ## Reporting
 
-Email info@subcoresolutions.online.
+Email info.subcoresolutions@gmail.com.
