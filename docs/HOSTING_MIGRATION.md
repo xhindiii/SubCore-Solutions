@@ -81,7 +81,7 @@ Tested here: `dist/` passes the full baseline comparison against the original si
 
 ### B. Put the new files on `main` (3 min)
 4. Open https://github.com/xhindiii/SubCore-Solutions/compare/main...dev/platform → **Create pull request** → **Merge pull request**.
-   This also publishes the "delete order" admin feature on the current live site. The hosting files are inert there (they are just extra files). Wait 1–2 minutes and check https://subcoresolutions.online still loads.
+   The hosting files are inert on the current live site (they are just extra files). Wait 1–2 minutes and check https://subcoresolutions.online still loads. (The "delete order" feature is already on `main`; `main` was at commit `c4d7eb5` before this migration work.)
 
 ### C. Create the Cloudflare site, preview only (15 min)
 5. Create a free account at https://dash.cloudflare.com/sign-up (use `info.subcoresolutions@gmail.com`, turn on two-factor authentication).
@@ -124,8 +124,8 @@ Do this only after you tell me / yourself "go". Pick a quiet hour.
 | Problem after the nameserver change (D), site down or wrong | At the registrar put the **old nameservers** back (from step 2). GitHub Pages is still enabled and `CNAME` still in the repo, so the old site returns as DNS refreshes | minutes to a few hours |
 | Missing e-mail or other DNS record | Re-create it in Cloudflare DNS from your rollback sheet | minutes |
 | Bad site content after a deploy | Cloudflare → Worker → **Deployments / Version history → Rollback** to the previous version; or revert the commit on `main` | 1–2 min |
-| Bad code on `main` | `git revert <commit>` (or restore tag `pre-hosting-migration`, see below); Cloudflare redeploys automatically | 2–3 min |
-| Need the original project as it was before all this work | Tag `baseline-2026-10-18` (commit `4f42788`) | n/a |
+| Bad code on `main` | `git revert <commit>` (or return to commit `c4d7eb5`, the last `main` before the migration files); Cloudflare redeploys automatically | 2–3 min |
+| Need the original project as it was before all this work | Commit `4f42788` (local tag `baseline-2026-10-18`) | n/a |
 
 Do not step 20 or 21 until you are sure; they are what makes the old path unavailable.
 
@@ -143,7 +143,7 @@ Do not step 20 or 21 until you are sure; they are what makes the old path unavai
 node scripts/build-static.mjs                         # build dist/ (also the Cloudflare build command)
 node tests/deploy/emulate-and-smoke.mjs               # local approximation test
 node scripts/smoke-test.mjs https://<url>             # real check of preview or production
-git tag pre-hosting-migration                         # recoverable copy of main before the move
+git checkout c4d7eb5                                  # main exactly as it was before the migration files (recovery point)
 ```
 
 Sources:
