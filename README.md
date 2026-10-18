@@ -39,7 +39,7 @@ Order of the SQL files for a new project: `supabase-schema-fresh-install.sql` �
 
 - **Products** — Add product: names and descriptions in both languages (one is enough, the other is copied), photos (upload or paste a link, first one is the main photo), price, optional old price, stock, category, brand, SKU, specifications. Stock, Visible and Featured can be changed directly in the list. Duplicate saves time for similar items.
 - **Categories** — become the category filter in the shop. Brands, price range, availability and sale filters are built automatically from your products.
-- **Orders** — every checkout arrives with a number like `SC-000012`. Call or WhatsApp the customer, set the status. Cancelling an order puts the items back in stock.
+- **Orders** — every checkout arrives with a number like `SC-000012`. Call or WhatsApp the customer, set the status. Cancelling an order puts the items back in stock. An admin can then delete a cancelled order (open it, press Delete, confirm); other orders cannot be deleted.
 - **Enquiries** — contact-form messages and "Request this service" submissions.
 - **Services** — optional. If you add services here they replace the built-in list on the site.
 - **Team** (admin) — add people and choose a role. *Admin*: everything. *Editor*: products, categories, services. *Staff*: orders and enquiries. Create the person's login in Supabase → Authentication → Users first, then add the same email here. The last admin cannot be removed or demoted.

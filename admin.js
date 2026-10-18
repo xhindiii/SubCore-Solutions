@@ -835,7 +835,15 @@
       '<table class="items-table"><thead><tr><th>Item</th><th class="num">Qty × price</th><th class="num">Total</th></tr></thead><tbody>' + lines + "</tbody><tfoot>" +
       (o.shipping ? '<tr><td colspan="2">Delivery</td><td class="num">' + money(o.shipping) + "</td></tr>" : "") + '<tr><td colspan="2"><strong>Total</strong></td><td class="num"><strong>' + money(o.total) + "</strong></td></tr></tfoot></table>" +
       '<div class="form-group" style="margin-top:1.25rem"><label for="o-status">Status</label><select id="o-status">' + ORDER_STATUS.map((s) => '<option value="' + s[0] + '"' + (o.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + '</select><div class="help">Cancelling an order puts its items back in stock.</div></div>',
-      '<a class="button button-outline" href="tel:' + esc(o.customer_phone) + '">Call</a><a class="button button-outline" target="_blank" rel="noopener" href="' + esc(wa) + '">WhatsApp</a><button type="button" class="button" id="o-save">Update status</button>');
+      (isAdmin() ? '<button type="button" class="button button-outline button-danger" id="o-del" style="margin-right:auto;background:#fff;color:#b42318"' + (o.status === "cancelled" ? "" : ' title="Cancel the order first"') + ">Delete</button>" : "") + '<a class="button button-outline" href="tel:' + esc(o.customer_phone) + '">Call</a><a class="button button-outline" target="_blank" rel="noopener" href="' + esc(wa) + '">WhatsApp</a><button type="button" class="button" id="o-save">Update status</button>');
+    const delBtn = $("#o-del", dr.el);
+    if (delBtn) delBtn.addEventListener("click", async () => {
+      // Only cancelled orders can be deleted: cancelling is what puts the items back in stock, so nothing is left half-counted.
+      if (o.status !== "cancelled") { toast("error", "Cancel this order first (set the status to Cancelled and press Update status). Then you can delete it."); return; }
+      if (!(await confirmBox("Delete this order permanently?", "Order " + (o.order_number || "#" + o.id) + " (" + o.customer_name + ") will be erased for good and will no longer appear in reports. This cannot be undone.", "Delete order", true))) return;
+      try { await SupabaseClient.deleteOrder(o.id); ok("Order deleted"); dr.close(); await reload("orders"); render(); }
+      catch (e) { fail(e, "Could not delete the order"); }
+    });
     $("#o-save", dr.el).addEventListener("click", async (ev) => {
       const status = $("#o-status", dr.el).value;
       if (status === o.status) { dr.close(); return; }
