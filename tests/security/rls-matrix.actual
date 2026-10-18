@@ -1,0 +1,354 @@
+anon|admin_users|delete|denied (0 rows)
+authenticated/admin|admin_users|delete|denied (check)
+authenticated/editor|admin_users|delete|denied (0 rows)
+authenticated/signed-in-no-role|admin_users|delete|denied (0 rows)
+authenticated/staff|admin_users|delete|denied (0 rows)
+anon|admin_users|insert|denied (permission/RLS)
+authenticated/admin|admin_users|insert|denied (permission/RLS)
+authenticated/editor|admin_users|insert|denied (permission/RLS)
+authenticated/signed-in-no-role|admin_users|insert|denied (permission/RLS)
+authenticated/staff|admin_users|insert|denied (permission/RLS)
+anon|admin_users|select|0 row(s) visible
+authenticated/admin|admin_users|select|4 row(s) visible
+authenticated/editor|admin_users|select|1 row(s) visible
+authenticated/signed-in-no-role|admin_users|select|0 row(s) visible
+authenticated/staff|admin_users|select|1 row(s) visible
+anon|admin_users|update|denied (0 rows)
+authenticated/admin|admin_users|update|allowed
+authenticated/editor|admin_users|update|denied (0 rows)
+authenticated/signed-in-no-role|admin_users|update|denied (0 rows)
+authenticated/staff|admin_users|update|denied (0 rows)
+anon|audit_log|delete|denied (permission/RLS)
+authenticated/admin|audit_log|delete|denied (permission/RLS)
+authenticated/editor|audit_log|delete|denied (permission/RLS)
+authenticated/signed-in-no-role|audit_log|delete|denied (permission/RLS)
+authenticated/staff|audit_log|delete|denied (permission/RLS)
+anon|audit_log|insert|denied (permission/RLS)
+authenticated/admin|audit_log|insert|denied (permission/RLS)
+authenticated/editor|audit_log|insert|denied (permission/RLS)
+authenticated/signed-in-no-role|audit_log|insert|denied (permission/RLS)
+authenticated/staff|audit_log|insert|denied (permission/RLS)
+anon|audit_log|select|denied (permission/RLS)
+authenticated/admin|audit_log|select|14 row(s) visible
+authenticated/editor|audit_log|select|0 row(s) visible
+authenticated/signed-in-no-role|audit_log|select|0 row(s) visible
+authenticated/staff|audit_log|select|0 row(s) visible
+anon|audit_log|update|denied (permission/RLS)
+authenticated/admin|audit_log|update|denied (permission/RLS)
+authenticated/editor|audit_log|update|denied (permission/RLS)
+authenticated/signed-in-no-role|audit_log|update|denied (permission/RLS)
+authenticated/staff|audit_log|update|denied (permission/RLS)
+anon|categories|delete|denied (0 rows)
+authenticated/admin|categories|delete|denied (fk)
+authenticated/editor|categories|delete|denied (fk)
+authenticated/signed-in-no-role|categories|delete|denied (0 rows)
+authenticated/staff|categories|delete|denied (0 rows)
+anon|categories|insert|denied (permission/RLS)
+authenticated/admin|categories|insert|allowed
+authenticated/editor|categories|insert|allowed
+authenticated/signed-in-no-role|categories|insert|denied (permission/RLS)
+authenticated/staff|categories|insert|denied (permission/RLS)
+anon|categories|select|1 row(s) visible
+authenticated/admin|categories|select|1 row(s) visible
+authenticated/editor|categories|select|1 row(s) visible
+authenticated/signed-in-no-role|categories|select|1 row(s) visible
+authenticated/staff|categories|select|1 row(s) visible
+anon|categories|update|denied (0 rows)
+authenticated/admin|categories|update|allowed
+authenticated/editor|categories|update|allowed
+authenticated/signed-in-no-role|categories|update|denied (0 rows)
+authenticated/staff|categories|update|denied (0 rows)
+anon|fn:admin_add_member|execute|denied
+authenticated|fn:admin_add_member|execute|allowed
+service_role|fn:admin_add_member|execute|allowed
+anon|fn:admin_role|execute|allowed
+authenticated|fn:admin_role|execute|allowed
+service_role|fn:admin_role|execute|allowed
+anon|fn:audit_pick|execute|allowed
+authenticated|fn:audit_pick|execute|allowed
+service_role|fn:audit_pick|execute|allowed
+anon|fn:audit_trigger|execute|denied
+authenticated|fn:audit_trigger|execute|denied
+service_role|fn:audit_trigger|execute|allowed
+anon|fn:claim_notifications|execute|denied
+authenticated|fn:claim_notifications|execute|denied
+service_role|fn:claim_notifications|execute|allowed
+anon|fn:finish_notification|execute|denied
+authenticated|fn:finish_notification|execute|denied
+service_role|fn:finish_notification|execute|allowed
+anon|fn:guard_last_admin|execute|allowed
+authenticated|fn:guard_last_admin|execute|allowed
+service_role|fn:guard_last_admin|execute|allowed
+anon|fn:has_admin_role|execute|allowed
+authenticated|fn:has_admin_role|execute|allowed
+service_role|fn:has_admin_role|execute|allowed
+anon|fn:is_admin|execute|allowed
+authenticated|fn:is_admin|execute|allowed
+service_role|fn:is_admin|execute|allowed
+anon|fn:notify_on_new_order|execute|denied
+authenticated|fn:notify_on_new_order|execute|denied
+service_role|fn:notify_on_new_order|execute|allowed
+anon|fn:orders_restock|execute|allowed
+authenticated|fn:orders_restock|execute|allowed
+service_role|fn:orders_restock|execute|allowed
+anon|fn:place_order|execute|allowed
+authenticated|fn:place_order|execute|allowed
+service_role|fn:place_order|execute|allowed
+anon|fn:projects_touch|execute|allowed
+authenticated|fn:projects_touch|execute|allowed
+service_role|fn:projects_touch|execute|allowed
+anon|fn:promo_templates_touch|execute|allowed
+authenticated|fn:promo_templates_touch|execute|allowed
+service_role|fn:promo_templates_touch|execute|allowed
+anon|fn:purchase_records_touch|execute|allowed
+authenticated|fn:purchase_records_touch|execute|allowed
+service_role|fn:purchase_records_touch|execute|allowed
+anon|fn:reorder_projects|execute|denied
+authenticated|fn:reorder_projects|execute|allowed
+service_role|fn:reorder_projects|execute|allowed
+anon|fn:reorder_services|execute|denied
+authenticated|fn:reorder_services|execute|allowed
+service_role|fn:reorder_services|execute|allowed
+anon|fn:retry_notification|execute|denied
+authenticated|fn:retry_notification|execute|allowed
+service_role|fn:retry_notification|execute|allowed
+anon|inquiries|delete|denied (0 rows)
+authenticated/admin|inquiries|delete|allowed
+authenticated/editor|inquiries|delete|denied (0 rows)
+authenticated/signed-in-no-role|inquiries|delete|denied (0 rows)
+authenticated/staff|inquiries|delete|denied (0 rows)
+anon|inquiries|insert|allowed
+authenticated/admin|inquiries|insert|allowed
+authenticated/editor|inquiries|insert|allowed
+authenticated/signed-in-no-role|inquiries|insert|allowed
+authenticated/staff|inquiries|insert|allowed
+anon|inquiries|select|0 row(s) visible
+authenticated/admin|inquiries|select|1 row(s) visible
+authenticated/editor|inquiries|select|0 row(s) visible
+authenticated/signed-in-no-role|inquiries|select|0 row(s) visible
+authenticated/staff|inquiries|select|1 row(s) visible
+anon|inquiries|update|denied (0 rows)
+authenticated/admin|inquiries|update|allowed
+authenticated/editor|inquiries|update|denied (0 rows)
+authenticated/signed-in-no-role|inquiries|update|denied (0 rows)
+authenticated/staff|inquiries|update|allowed
+anon|notification_log|delete|denied (permission/RLS)
+authenticated/admin|notification_log|delete|denied (permission/RLS)
+authenticated/editor|notification_log|delete|denied (permission/RLS)
+authenticated/signed-in-no-role|notification_log|delete|denied (permission/RLS)
+authenticated/staff|notification_log|delete|denied (permission/RLS)
+anon|notification_log|insert|denied (permission/RLS)
+authenticated/admin|notification_log|insert|denied (permission/RLS)
+authenticated/editor|notification_log|insert|denied (permission/RLS)
+authenticated/signed-in-no-role|notification_log|insert|denied (permission/RLS)
+authenticated/staff|notification_log|insert|denied (permission/RLS)
+anon|notification_log|select|denied (permission/RLS)
+authenticated/admin|notification_log|select|1 row(s) visible
+authenticated/editor|notification_log|select|0 row(s) visible
+authenticated/signed-in-no-role|notification_log|select|0 row(s) visible
+authenticated/staff|notification_log|select|0 row(s) visible
+anon|notification_log|update|denied (permission/RLS)
+authenticated/admin|notification_log|update|denied (permission/RLS)
+authenticated/editor|notification_log|update|denied (permission/RLS)
+authenticated/signed-in-no-role|notification_log|update|denied (permission/RLS)
+authenticated/staff|notification_log|update|denied (permission/RLS)
+anon|orders|delete|denied (0 rows)
+authenticated/admin|orders|delete|allowed
+authenticated/editor|orders|delete|denied (0 rows)
+authenticated/signed-in-no-role|orders|delete|denied (0 rows)
+authenticated/staff|orders|delete|denied (0 rows)
+anon|orders|insert|denied (permission/RLS)
+authenticated/admin|orders|insert|denied (permission/RLS)
+authenticated/editor|orders|insert|denied (permission/RLS)
+authenticated/signed-in-no-role|orders|insert|denied (permission/RLS)
+authenticated/staff|orders|insert|denied (permission/RLS)
+anon|orders|select|0 row(s) visible
+authenticated/admin|orders|select|1 row(s) visible
+authenticated/editor|orders|select|0 row(s) visible
+authenticated/signed-in-no-role|orders|select|0 row(s) visible
+authenticated/staff|orders|select|1 row(s) visible
+anon|orders|update|denied (0 rows)
+authenticated/admin|orders|update|allowed
+authenticated/editor|orders|update|denied (0 rows)
+authenticated/signed-in-no-role|orders|update|denied (0 rows)
+authenticated/staff|orders|update|allowed
+anon|products|delete|denied (0 rows)
+authenticated/admin|products|delete|allowed
+authenticated/editor|products|delete|allowed
+authenticated/signed-in-no-role|products|delete|denied (0 rows)
+authenticated/staff|products|delete|denied (0 rows)
+anon|products|insert|denied (permission/RLS)
+authenticated/admin|products|insert|allowed
+authenticated/editor|products|insert|allowed
+authenticated/signed-in-no-role|products|insert|denied (permission/RLS)
+authenticated/staff|products|insert|denied (permission/RLS)
+anon|products|select|2 row(s) visible
+authenticated/admin|products|select|2 row(s) visible
+authenticated/editor|products|select|2 row(s) visible
+authenticated/signed-in-no-role|products|select|2 row(s) visible
+authenticated/staff|products|select|2 row(s) visible
+anon|products|update|denied (0 rows)
+authenticated/admin|products|update|allowed
+authenticated/editor|products|update|allowed
+authenticated/signed-in-no-role|products|update|denied (0 rows)
+authenticated/staff|products|update|denied (0 rows)
+anon|project_services|delete|denied (permission/RLS)
+authenticated/admin|project_services|delete|allowed
+authenticated/editor|project_services|delete|allowed
+authenticated/signed-in-no-role|project_services|delete|denied (0 rows)
+authenticated/staff|project_services|delete|denied (0 rows)
+anon|project_services|insert|denied (permission/RLS)
+authenticated/admin|project_services|insert|allowed
+authenticated/editor|project_services|insert|allowed
+authenticated/signed-in-no-role|project_services|insert|denied (permission/RLS)
+authenticated/staff|project_services|insert|denied (permission/RLS)
+anon|project_services|select|1 row(s) visible
+authenticated/admin|project_services|select|2 row(s) visible
+authenticated/editor|project_services|select|2 row(s) visible
+authenticated/signed-in-no-role|project_services|select|1 row(s) visible
+authenticated/staff|project_services|select|1 row(s) visible
+anon|project_services|update|denied (permission/RLS)
+authenticated/admin|project_services|update|allowed
+authenticated/editor|project_services|update|allowed
+authenticated/signed-in-no-role|project_services|update|denied (0 rows)
+authenticated/staff|project_services|update|denied (0 rows)
+anon|projects|delete|denied (permission/RLS)
+authenticated/admin|projects|delete|allowed
+authenticated/editor|projects|delete|denied (0 rows)
+authenticated/signed-in-no-role|projects|delete|denied (0 rows)
+authenticated/staff|projects|delete|denied (0 rows)
+anon|projects|insert|denied (permission/RLS)
+authenticated/admin|projects|insert|allowed
+authenticated/editor|projects|insert|allowed
+authenticated/signed-in-no-role|projects|insert|denied (permission/RLS)
+authenticated/staff|projects|insert|denied (permission/RLS)
+anon|projects|select|1 row(s) visible
+authenticated/admin|projects|select|3 row(s) visible
+authenticated/editor|projects|select|3 row(s) visible
+authenticated/signed-in-no-role|projects|select|1 row(s) visible
+authenticated/staff|projects|select|1 row(s) visible
+anon|projects|update|denied (permission/RLS)
+authenticated/admin|projects|update|allowed
+authenticated/editor|projects|update|allowed
+authenticated/signed-in-no-role|projects|update|denied (0 rows)
+authenticated/staff|projects|update|denied (0 rows)
+anon|promo_templates|delete|denied (permission/RLS)
+authenticated/admin|promo_templates|delete|allowed
+authenticated/editor|promo_templates|delete|allowed
+authenticated/signed-in-no-role|promo_templates|delete|denied (0 rows)
+authenticated/staff|promo_templates|delete|denied (0 rows)
+anon|promo_templates|insert|denied (permission/RLS)
+authenticated/admin|promo_templates|insert|allowed
+authenticated/editor|promo_templates|insert|allowed
+authenticated/signed-in-no-role|promo_templates|insert|denied (permission/RLS)
+authenticated/staff|promo_templates|insert|denied (permission/RLS)
+anon|promo_templates|select|denied (permission/RLS)
+authenticated/admin|promo_templates|select|1 row(s) visible
+authenticated/editor|promo_templates|select|1 row(s) visible
+authenticated/signed-in-no-role|promo_templates|select|0 row(s) visible
+authenticated/staff|promo_templates|select|0 row(s) visible
+anon|promo_templates|update|denied (permission/RLS)
+authenticated/admin|promo_templates|update|allowed
+authenticated/editor|promo_templates|update|allowed
+authenticated/signed-in-no-role|promo_templates|update|denied (0 rows)
+authenticated/staff|promo_templates|update|denied (0 rows)
+anon|purchase_records|delete|denied (permission/RLS)
+authenticated/admin|purchase_records|delete|denied (permission/RLS)
+authenticated/editor|purchase_records|delete|denied (permission/RLS)
+authenticated/signed-in-no-role|purchase_records|delete|denied (permission/RLS)
+authenticated/staff|purchase_records|delete|denied (permission/RLS)
+anon|purchase_records|insert|denied (permission/RLS)
+authenticated/admin|purchase_records|insert|allowed
+authenticated/editor|purchase_records|insert|denied (permission/RLS)
+authenticated/signed-in-no-role|purchase_records|insert|denied (permission/RLS)
+authenticated/staff|purchase_records|insert|denied (permission/RLS)
+anon|purchase_records|select|denied (permission/RLS)
+authenticated/admin|purchase_records|select|1 row(s) visible
+authenticated/editor|purchase_records|select|0 row(s) visible
+authenticated/signed-in-no-role|purchase_records|select|0 row(s) visible
+authenticated/staff|purchase_records|select|0 row(s) visible
+anon|purchase_records|update|denied (permission/RLS)
+authenticated/admin|purchase_records|update|allowed
+authenticated/editor|purchase_records|update|denied (0 rows)
+authenticated/signed-in-no-role|purchase_records|update|denied (0 rows)
+authenticated/staff|purchase_records|update|denied (0 rows)
+anon|services|delete|denied (0 rows)
+authenticated/admin|services|delete|allowed
+authenticated/editor|services|delete|allowed
+authenticated/signed-in-no-role|services|delete|denied (0 rows)
+authenticated/staff|services|delete|denied (0 rows)
+anon|services|insert|denied (permission/RLS)
+authenticated/admin|services|insert|allowed
+authenticated/editor|services|insert|allowed
+authenticated/signed-in-no-role|services|insert|denied (permission/RLS)
+authenticated/staff|services|insert|denied (permission/RLS)
+anon|services|select|2 row(s) visible
+authenticated/admin|services|select|2 row(s) visible
+authenticated/editor|services|select|2 row(s) visible
+authenticated/signed-in-no-role|services|select|2 row(s) visible
+authenticated/staff|services|select|2 row(s) visible
+anon|services|update|denied (0 rows)
+authenticated/admin|services|update|allowed
+authenticated/editor|services|update|allowed
+authenticated/signed-in-no-role|services|update|denied (0 rows)
+authenticated/staff|services|update|denied (0 rows)
+anon|storage:portfolio-images|delete|denied (0 rows)
+authenticated/admin|storage:portfolio-images|delete|allowed
+authenticated/editor|storage:portfolio-images|delete|allowed
+authenticated/signed-in-no-role|storage:portfolio-images|delete|denied (0 rows)
+authenticated/staff|storage:portfolio-images|delete|denied (0 rows)
+anon|storage:portfolio-images|insert|denied (permission/RLS)
+authenticated/admin|storage:portfolio-images|insert|allowed
+authenticated/editor|storage:portfolio-images|insert|allowed
+authenticated/signed-in-no-role|storage:portfolio-images|insert|denied (permission/RLS)
+authenticated/staff|storage:portfolio-images|insert|denied (permission/RLS)
+anon|storage:portfolio-images|select|1 row(s) visible
+authenticated/admin|storage:portfolio-images|select|1 row(s) visible
+authenticated/editor|storage:portfolio-images|select|1 row(s) visible
+authenticated/signed-in-no-role|storage:portfolio-images|select|1 row(s) visible
+authenticated/staff|storage:portfolio-images|select|1 row(s) visible
+anon|storage:portfolio-images|update|denied (0 rows)
+authenticated/admin|storage:portfolio-images|update|allowed
+authenticated/editor|storage:portfolio-images|update|allowed
+authenticated/signed-in-no-role|storage:portfolio-images|update|denied (0 rows)
+authenticated/staff|storage:portfolio-images|update|denied (0 rows)
+anon|storage:product-images|delete|denied (0 rows)
+authenticated/admin|storage:product-images|delete|allowed
+authenticated/editor|storage:product-images|delete|allowed
+authenticated/signed-in-no-role|storage:product-images|delete|denied (0 rows)
+authenticated/staff|storage:product-images|delete|denied (0 rows)
+anon|storage:product-images|insert|denied (permission/RLS)
+authenticated/admin|storage:product-images|insert|allowed
+authenticated/editor|storage:product-images|insert|allowed
+authenticated/signed-in-no-role|storage:product-images|insert|denied (permission/RLS)
+authenticated/staff|storage:product-images|insert|denied (permission/RLS)
+anon|storage:product-images|select|1 row(s) visible
+authenticated/admin|storage:product-images|select|1 row(s) visible
+authenticated/editor|storage:product-images|select|1 row(s) visible
+authenticated/signed-in-no-role|storage:product-images|select|1 row(s) visible
+authenticated/staff|storage:product-images|select|1 row(s) visible
+anon|storage:product-images|update|denied (0 rows)
+authenticated/admin|storage:product-images|update|allowed
+authenticated/editor|storage:product-images|update|allowed
+authenticated/signed-in-no-role|storage:product-images|update|denied (0 rows)
+authenticated/staff|storage:product-images|update|denied (0 rows)
+anon|website_settings|delete|denied (0 rows)
+authenticated/admin|website_settings|delete|allowed
+authenticated/editor|website_settings|delete|denied (0 rows)
+authenticated/signed-in-no-role|website_settings|delete|denied (0 rows)
+authenticated/staff|website_settings|delete|denied (0 rows)
+anon|website_settings|insert|denied (permission/RLS)
+authenticated/admin|website_settings|insert|allowed
+authenticated/editor|website_settings|insert|denied (permission/RLS)
+authenticated/signed-in-no-role|website_settings|insert|denied (permission/RLS)
+authenticated/staff|website_settings|insert|denied (permission/RLS)
+anon|website_settings|select|5 row(s) visible
+authenticated/admin|website_settings|select|5 row(s) visible
+authenticated/editor|website_settings|select|5 row(s) visible
+authenticated/signed-in-no-role|website_settings|select|5 row(s) visible
+authenticated/staff|website_settings|select|5 row(s) visible
+anon|website_settings|update|denied (0 rows)
+authenticated/admin|website_settings|update|allowed
+authenticated/editor|website_settings|update|denied (0 rows)
+authenticated/signed-in-no-role|website_settings|update|denied (0 rows)
+authenticated/staff|website_settings|update|denied (0 rows)
