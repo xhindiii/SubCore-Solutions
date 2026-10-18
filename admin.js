@@ -18,10 +18,12 @@
     ["team", "Team", "users"],
     ["activity", "Activity", "activity"],
     ["notifications", "Notifications", "mail"],
+    ["promo", "Promo graphics", "tag"],
+    ["reports", "Reports", "receipt"],
     ["settings", "Settings", "settings"]
   ];
   /* What each role may open. The database enforces the same rules (RLS); this only hides what would be refused. */
-  const ACCESS = { admin: null, editor: ["dashboard", "products", "categories", "services", "portfolio", "settings"], staff: ["dashboard", "orders", "inquiries", "settings"] };
+  const ACCESS = { admin: null, editor: ["dashboard", "products", "categories", "services", "portfolio", "promo", "settings"], staff: ["dashboard", "orders", "inquiries", "settings"] };
   const ROLE_LABEL = { admin: "Admin", editor: "Editor", staff: "Staff" };
   const ROLE_HELP = { admin: "Full access, including team, activity log and delivery settings.", editor: "Products, categories and services. Cannot see orders or customers.", staff: "Orders and enquiries. Cannot change the catalogue." };
   const PAGE = 20;
@@ -29,7 +31,7 @@
   const NOTIF_STATUS = [["pending", "Queued", "amber"], ["sending", "Sending", "blue"], ["sent", "Sent", "green"], ["failed", "Retrying", "amber"], ["dead", "Failed", "red"]];
   const NOTIF_EVENT = { order_submitted: "New order", payment_confirmed: "Payment confirmed" };
 
-  const S = { admin: null, products: [], categories: [], services: [], projects: undefined, orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "", notifications: undefined,
+  const S = { admin: null, products: [], categories: [], services: [], projects: undefined, orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "", notifications: undefined, promoTemplates: undefined, purchases: undefined,
     pg: { products: 1, orders: 1, inquiries: 1, activity: 1, notifications: 1 },
     pf: { q: "", cat: "", state: "", sort: "newest" }, of: { q: "", status: "" }, qf: { status: "" }, nf: { status: "" }, pj: { q: "", status: "" } };
 
@@ -168,6 +170,8 @@
     S.projects = can("portfolio") ? await safe(SupabaseClient.fetchProjects(), null) : null;
     if (isAdmin()) S.audit = await safe(SupabaseClient.fetchAudit(300), null);
     if (isAdmin()) S.notifications = await safe(SupabaseClient.fetchNotifications(200), null);
+    S.promoTemplates = can("promo") ? await safe(SupabaseClient.fetchPromoTemplates(), null) : null;
+    S.purchases = isAdmin() ? await safe(SupabaseClient.fetchPurchases(), null) : null;
   }
 
   async function reload(what) {
@@ -181,6 +185,8 @@
       if (what === "team") S.team = await SupabaseClient.fetchTeam();
       if (what === "audit") S.audit = await SupabaseClient.fetchAudit(300);
       if (what === "notifications") S.notifications = await SupabaseClient.fetchNotifications(200);
+      if (what === "promoTemplates") S.promoTemplates = await SupabaseClient.fetchPromoTemplates();
+      if (what === "purchases") S.purchases = await SupabaseClient.fetchPurchases();
     } catch (e) { fail(e, "Could not refresh data"); }
   }
 
@@ -239,7 +245,15 @@
     const actions = $("#page-actions");
     actions.innerHTML = "";
     const view = $("#view");
-    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, portfolio: viewPortfolio, team: viewTeam, activity: viewActivity, notifications: viewNotifications, settings: viewSettings })[S.section](view, actions);
+    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, portfolio: viewPortfolio, team: viewTeam, activity: viewActivity, notifications: viewNotifications, promo: viewExt, reports: viewExt, settings: viewSettings })[S.section](view, actions);
+  }
+
+  /* Promo graphics and Reports live in their own files (admin-promo.js, admin-reports.js) and register in window.AdminViews.
+     They get a small, explicit toolkit instead of reaching into this file's internals. */
+  function viewExt(view, actions) {
+    const mod = window.AdminViews && window.AdminViews[S.section];
+    if (!mod) { view.innerHTML = '<div class="card"><div class="empty">This section could not be loaded. Reload the page.</div></div>'; return; }
+    mod(view, actions, { S, $, $$, esc, icon, nm, toast, ok, fail, confirmBox, drawer, busy, isAdmin, can, reload, render, downloadCsv, fmtDate });
   }
 
   /* ── Dashboard ──────────────────────────────────────────────────── */

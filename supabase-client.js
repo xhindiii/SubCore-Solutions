@@ -496,6 +496,7 @@ const SupabaseClient = {
       notes: row.notes,
       items: parseJson(row.items, []),
       total: parseFloat(row.total) || 0,
+      shipping: parseFloat(row.shipping) || 0,
       status: row.status,
       created_at: row.created_at
     }));
@@ -581,6 +582,57 @@ const SupabaseClient = {
     const { data, error } = await sb.rpc("retry_notification", { p_id: id });
     this._check(error);
     return data === true;
+  },
+
+  /* ── Admin: promo templates (table created by supabase-migration-v7-promo-reports.sql) ──
+     A template stores look-and-feel only. Nothing here touches products, services or invoices. */
+  async fetchPromoTemplates() {
+    this._need();
+    const { data, error } = await sb.from("promo_templates").select("id, name, spec, updated_at").order("name");
+    if (error && isMissingSchema(error)) return null; // v7 not installed: built-in templates still work
+    this._check(error);
+    return data.map((r) => ({ id: r.id, name: r.name, spec: parseJson(r.spec, {}), updated_at: r.updated_at }));
+  },
+  async savePromoTemplate(t) {
+    this._need();
+    const row = { name: String(t.name || "").trim().slice(0, 80), spec: t.spec };
+    if (t.id) { const { data, error } = await sb.from("promo_templates").update(row).eq("id", t.id).select("id").single(); this._check(error); return data.id; }
+    const { data, error } = await sb.from("promo_templates").insert(row).select("id").single();
+    this._check(error);
+    return data.id;
+  },
+  async deletePromoTemplate(id) {
+    this._need();
+    const { error } = await sb.from("promo_templates").delete().eq("id", id);
+    this._check(error);
+  },
+
+  /* ── Admin: purchase ledger (admin only; created by v7). Rows are voided, never deleted. ── */
+  async fetchPurchases() {
+    this._need();
+    const { data, error } = await sb.from("purchase_records").select("*").order("doc_date", { ascending: false }).order("id", { ascending: false });
+    if (error && isMissingSchema(error)) return null;
+    this._check(error);
+    return data.map((r) => ({ id: r.id, supplier: r.supplier, doc_number: r.doc_number, doc_date: r.doc_date, currency: r.currency,
+      net_amount: r.net_amount, vat_amount: r.vat_amount, total_amount: r.total_amount, paid_amount: r.paid_amount, paid_date: r.paid_date,
+      note: r.note, voided: r.voided, void_reason: r.void_reason }));
+  },
+  async addPurchase(p) {
+    this._need();
+    const { data, error } = await sb.from("purchase_records").insert(p).select("id").single();
+    this._check(error);
+    return data.id;
+  },
+  // Only the payment fields and note can change afterwards; amounts of a recorded document are corrected by voiding it and re-entering it.
+  async updatePurchasePayment(id, paid_amount, paid_date, note) {
+    this._need();
+    const { error } = await sb.from("purchase_records").update({ paid_amount, paid_date, note }).eq("id", id);
+    this._check(error);
+  },
+  async voidPurchase(id, reason) {
+    this._need();
+    const { error } = await sb.from("purchase_records").update({ voided: true, void_reason: String(reason || "").trim().slice(0, 300) }).eq("id", id);
+    this._check(error);
   },
 
   async upsertSetting(key, value) {
