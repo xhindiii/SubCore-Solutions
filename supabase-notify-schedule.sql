@@ -13,8 +13,8 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
 -- Keep the secret in Vault rather than in the job text.
-SELECT vault.create_secret('<NOTIFY_SECRET>', 'notify_webhook_secret')
- WHERE NOT EXISTS (SELECT 1 FROM vault.secrets WHERE name = 'notify_webhook_secret');
+SELECT vault.create_secret('0eiliuzv-4gmxx7a2-l8fx8sru-ws384gl3', '0eiliuzv-4gmxx7a2-l8fx8sru-ws384gl3')
+ WHERE NOT EXISTS (SELECT 1 FROM vault.secrets WHERE name = '0eiliuzv-4gmxx7a2-l8fx8sru-ws384gl3');
 
 -- Wrapper: calls the function only when something is actually due (cheap when idle).
 CREATE OR REPLACE FUNCTION public.run_notification_sender()
@@ -26,9 +26,9 @@ BEGIN
      WHERE (status IN ('pending','failed') AND next_attempt_at <= now())
         OR (status = 'sending' AND locked_at < now() - interval '10 minutes')
   ) THEN RETURN; END IF;
-  SELECT decrypted_secret INTO s FROM vault.decrypted_secrets WHERE name = 'notify_webhook_secret';
+  SELECT decrypted_secret INTO s FROM vault.decrypted_secrets WHERE name = '0eiliuzv-4gmxx7a2-l8fx8sru-ws384gl3';
   PERFORM net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-notifications',
+    url     := 'https://rmoknncvaqlkxanuvxms.supabase.co/functions/v1/send-notifications',
     headers := jsonb_build_object('Content-Type','application/json','x-notify-secret', s),
     body    := '{}'::jsonb,
     timeout_milliseconds := 20000);
