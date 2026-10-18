@@ -16,6 +16,7 @@
     ["services", "Services", "support"],
     ["team", "Team", "users"],
     ["activity", "Activity", "activity"],
+    ["notifications", "Notifications", "mail"],
     ["settings", "Settings", "settings"]
   ];
   /* What each role may open. The database enforces the same rules (RLS); this only hides what would be refused. */
@@ -24,9 +25,12 @@
   const ROLE_HELP = { admin: "Full access, including team, activity log and delivery settings.", editor: "Products, categories and services. Cannot see orders or customers.", staff: "Orders and enquiries. Cannot change the catalogue." };
   const PAGE = 20;
 
-  const S = { admin: null, products: [], categories: [], services: [], orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "",
-    pg: { products: 1, orders: 1, inquiries: 1, activity: 1 },
-    pf: { q: "", cat: "", state: "", sort: "newest" }, of: { q: "", status: "" }, qf: { status: "" } };
+  const NOTIF_STATUS = [["pending", "Queued", "amber"], ["sending", "Sending", "blue"], ["sent", "Sent", "green"], ["failed", "Retrying", "amber"], ["dead", "Failed", "red"]];
+  const NOTIF_EVENT = { order_submitted: "New order", payment_confirmed: "Payment confirmed" };
+
+  const S = { admin: null, products: [], categories: [], services: [], orders: [], inquiries: null, settings: {}, section: "dashboard", team: [], audit: undefined, auditTable: "", notifications: undefined,
+    pg: { products: 1, orders: 1, inquiries: 1, activity: 1, notifications: 1 },
+    pf: { q: "", cat: "", state: "", sort: "newest" }, of: { q: "", status: "" }, qf: { status: "" }, nf: { status: "" } };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => [...(root || document).querySelectorAll(sel)];
@@ -161,6 +165,7 @@
     S.settings = settings;
     await SupabaseClient.detectExtended().catch(() => {});
     if (isAdmin()) S.audit = await safe(SupabaseClient.fetchAudit(300), null);
+    if (isAdmin()) S.notifications = await safe(SupabaseClient.fetchNotifications(200), null);
   }
 
   async function reload(what) {
@@ -172,15 +177,18 @@
       if (what === "settings") S.settings = await SupabaseClient.fetchSettings();
       if (what === "team") S.team = await SupabaseClient.fetchTeam();
       if (what === "audit") S.audit = await SupabaseClient.fetchAudit(300);
+      if (what === "notifications") S.notifications = await SupabaseClient.fetchNotifications(200);
     } catch (e) { fail(e, "Could not refresh data"); }
   }
 
   const newOrders = () => S.orders.filter((o) => o.status === "pending").length;
   const newInquiries = () => (S.inquiries || []).filter((q) => q.status === "new").length;
+  /* Notifications that used all their automatic retries and need a human (Admin → Notifications → Retry). */
+  const failedNotifications = () => (S.notifications || []).filter((n) => n.status === "dead").length;
 
   /* ── Shell ──────────────────────────────────────────────────────── */
   function renderNav() {
-    const badge = { orders: newOrders(), inquiries: newInquiries() };
+    const badge = { orders: newOrders(), inquiries: newInquiries(), notifications: isAdmin() ? failedNotifications() : 0 };
     const make = (cls) => SECTIONS.filter((x) => can(x[0])).map(([id, label, ic]) =>
       '<button type="button" class="nav-btn" data-nav="' + id + '"' + (S.section === id ? ' aria-current="page"' : "") + ">" + icon(ic) + "<span>" + label + "</span>" +
       (badge[id] ? '<span class="nav-badge">' + badge[id] + "</span>" : "") + "</button>").join("");
@@ -194,16 +202,29 @@
     if (!SupabaseClient.extended) msgs.push("The store upgrade is not installed in your database yet, so brand, SKU, sale price, extra photos and specifications are not saved. Run <strong>supabase-migration-v3-store.sql</strong> in the Supabase SQL editor.");
     if (S.inquiries === null && can("inquiries")) msgs.push("Enquiries are not being stored yet — the same migration creates that table.");
     if (isAdmin() && S.audit === null) msgs.push("Roles, the activity log and team management are not installed yet. Run <strong>supabase-migration-v4-security.sql</strong> in the Supabase SQL editor.");
+    if (isAdmin() && S.notifications === null) msgs.push("Order e-mail notifications are not set up yet. Run <strong>supabase-migration-v5-notifications.sql</strong> in the Supabase SQL editor, then follow <strong>NOTIFICATIONS.md</strong>.");
+    if (isAdmin() && failedNotifications() > 0) msgs.push("<strong>" + failedNotifications() + " order notification" + (failedNotifications() === 1 ? "" : "s") + " could not be e-mailed.</strong> <a href=\"#notifications\">Open Notifications</a> to retry.");
     n.hidden = !msgs.length;
     n.innerHTML = msgs.join("<br>");
   }
 
-  function go(section) {
-    if (!SECTIONS.some((s) => s[0] === section) || !can(section)) section = "dashboard";
+  /* `target` is a section id, or "orders/<id>" — the link in the notification e-mail opens that order after sign-in. */
+  function go(target) {
+    const parts = String(target || "").split("/");
+    let section = parts[0], arg = "";
+    if (parts.length > 1) { try { arg = decodeURIComponent(parts.slice(1).join("/")); } catch { arg = ""; } }
+    if (!SECTIONS.some((s) => s[0] === section) || !can(section)) { section = "dashboard"; arg = ""; }
     S.section = section;
     if (location.hash !== "#" + section) history.replaceState(null, "", "#" + section);
     render();
     window.scrollTo(0, 0);
+    if (section === "orders" && arg) openOrderById(arg);
+  }
+
+  async function openOrderById(id) {
+    const has = () => S.orders.some((o) => String(o.id) === String(id));
+    if (!has()) { await reload("orders"); if (S.section === "orders") render(); } // a brand-new order may not be loaded yet
+    if (has()) orderDetail(id); else toast("info", "That order was not found.");
   }
 
   function render() {
@@ -215,7 +236,7 @@
     const actions = $("#page-actions");
     actions.innerHTML = "";
     const view = $("#view");
-    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, team: viewTeam, activity: viewActivity, settings: viewSettings })[S.section](view, actions);
+    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, team: viewTeam, activity: viewActivity, notifications: viewNotifications, settings: viewSettings })[S.section](view, actions);
   }
 
   /* ── Dashboard ──────────────────────────────────────────────────── */
@@ -552,6 +573,40 @@
     });
   }
 
+  /* ── Notifications (admin only) ─────────────────────────────────── */
+  async function viewNotifications(view) {
+    const missing = () => { view.innerHTML = '<div class="card"><div class="empty">Order e-mail notifications are not installed yet.<br>Run <strong>supabase-migration-v5-notifications.sql</strong> in Supabase, then follow <strong>NOTIFICATIONS.md</strong>.</div></div>'; };
+    if (S.notifications === null) { missing(); return; }
+    view.innerHTML = '<div class="empty">Loading…</div>';
+    await reload("notifications");
+    if (S.section !== "notifications") return;
+    if (S.notifications === null) { missing(); return; }
+    const all = S.notifications.filter((n) => !S.nf.status || n.status === S.nf.status);
+    const npg = pager("notifications", all.length);
+    const rows = npg.rows(all);
+    const orderExists = (n) => S.orders.some((o) => String(o.id) === String(n.order_id));
+    const ref = (n) => esc(n.order_number || "#" + n.order_id);
+    const detail = (n) => n.status === "sent" ? "Accepted by the e-mail service" : n.status === "failed" ? "Next try " + esc(fmtDate(n.next_attempt_at)) + (n.last_error ? " · " + esc(n.last_error) : "") : n.status === "dead" ? "Gave up after " + n.attempts + " tries" + (n.last_error ? " · " + esc(n.last_error) : "") : n.status === "sending" ? "In progress" : "Waiting for the next send";
+    view.innerHTML =
+      '<p class="muted" style="margin-top:0">Every new order is e-mailed to your notification address by the server. <strong>Sent</strong> means the e-mail service accepted the message. A <strong>Failed</strong> notification used all automatic retries — fix the cause, then press Retry. Cash-on-delivery orders are never reported as paid.</p>' +
+      '<div class="toolbar"><select id="nf-s" aria-label="Status"><option value="">All statuses</option>' + NOTIF_STATUS.map((s) => '<option value="' + s[0] + '"' + (S.nf.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></div>" +
+      (rows.length ? '<div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Event</th><th>Status</th><th>Details</th><th>Created</th><th>Sent</th><th></th></tr></thead><tbody>' +
+        rows.map((n) => "<tr><td><strong>" + (orderExists(n) ? '<button type="button" class="link-btn" data-action="open-order" data-id="' + esc(n.order_id) + '">' + ref(n) + "</button>" : ref(n)) + "</strong></td><td>" + esc(NOTIF_EVENT[n.event_type] || n.event_type) + "</td><td>" + pill(n.status, NOTIF_STATUS) + "</td><td>" + detail(n) + "</td><td>" + esc(fmtDate(n.created_at)) + "</td><td>" + esc(fmtDate(n.sent_at)) + "</td><td>" +
+          (n.status === "failed" || n.status === "dead" ? '<button type="button" class="button button-outline button-sm" data-action="retry-notification" data-id="' + esc(n.id) + '">Retry</button>' : "") + "</td></tr>").join("") +
+        "</tbody></table></div>" + npg.html
+        : '<div class="card"><div class="empty">' + (S.notifications.length ? "No notifications match." : "No notifications yet. They appear here after the next customer order.") + "</div></div>");
+    $("#nf-s").addEventListener("change", (e) => { S.nf.status = e.target.value; S.pg.notifications = 1; viewNotifications(view); });
+  }
+
+  async function retryNotification(id, btn) {
+    busy(btn, true);
+    try {
+      const done = await SupabaseClient.retryNotification(id);
+      if (done) ok("Queued again — the next scheduled run will send it"); else toast("info", "Nothing to retry (it may already have been sent).");
+      await reload("notifications"); render();
+    } catch (e) { fail(e, "Could not queue the notification again"); busy(btn, false); }
+  }
+
   /* ── Enquiries ──────────────────────────────────────────────────── */
   function viewInquiries(view, actions) {
     if (actions && S.inquiries) actions.innerHTML = csvBtn("csv-inquiries");
@@ -707,6 +762,7 @@
       case "del-service": deleteService(id); break;
       case "open-order": orderDetail(id); break;
       case "open-inquiry": inquiryDetail(id); break;
+      case "retry-notification": retryNotification(Number(id), a); break;
       case "export": exportBackup(); break;
       case "csv-products": downloadCsv("subcore-products", ["ID", "Name (EN)", "Name (SQ)", "Category", "Brand", "SKU", "Price", "Compare price", "Currency", "Stock", "Visible", "Featured"],
         filteredProducts().map((p) => [p.id, p.name.en, p.name.sq, catName(p.category), p.brand, p.sku, p.price, p.compare_price, p.currency, p.stock, p.available ? "yes" : "no", p.featured ? "yes" : "no"])); break;

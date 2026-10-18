@@ -28,7 +28,9 @@ Website and online shop for SubCore Solutions (IT services, Albania). Plain HTML
 5. Run `supabase-migration-v4-security.sql` — roles (admin / editor / staff), the activity log, the last-admin guard and role-based database rules. Back up first (see **Backups**). To undo it: `supabase-migration-v4-ROLLBACK.sql`.
 6. Open `/admin.html` on your site and sign in.
 
-Order of the SQL files for a new project: `supabase-schema-fresh-install.sql` → `supabase-migration-v3-store.sql` → `supabase-migration-v4-security.sql`. Everything in `legacy/` is kept only for reference and must not be run.
+6. Optional — order e-mail notifications: `supabase-migration-v5-notifications.sql` (undo: `supabase-migration-v5-ROLLBACK.sql`), then follow `NOTIFICATIONS.md`. Staging first; nothing is sent until you enable it.
+
+Order of the SQL files for a new project: `supabase-schema-fresh-install.sql` → `supabase-migration-v3-store.sql` → `supabase-migration-v4-security.sql` → (optional) `supabase-migration-v5-notifications.sql`. Everything in `legacy/` is kept only for reference and must not be run.
 
 ## Using the admin panel
 

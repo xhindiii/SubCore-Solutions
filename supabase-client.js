@@ -408,6 +408,26 @@ const SupabaseClient = {
     return data;
   },
 
+  /* ── Admin: order e-mail notifications (admin only; table created by supabase-migration-v5-notifications.sql) ──
+     The log holds no customer data. Sending itself happens on the server (Edge Function), never in the browser. */
+  async fetchNotifications(limit) {
+    this._need();
+    const { data, error } = await sb.from("notification_log")
+      .select("id, event_type, order_id, order_number, status, attempts, next_attempt_at, last_error, created_at, sent_at")
+      .order("id", { ascending: false }).limit(limit || 200);
+    if (error && isMissingSchema(error)) return null; // v5 migration not installed
+    this._check(error);
+    return data;
+  },
+
+  // Puts a failed notification back in the queue. Returns false if there was nothing to retry (e.g. already sent).
+  async retryNotification(id) {
+    this._need();
+    const { data, error } = await sb.rpc("retry_notification", { p_id: id });
+    this._check(error);
+    return data === true;
+  },
+
   async upsertSetting(key, value) {
     this._need();
     const { data, error } = await sb.from("website_settings").upsert({ key, value }).select();
