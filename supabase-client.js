@@ -642,6 +642,48 @@ const SupabaseClient = {
     this._check(error);
   },
 
+  /* ── Admin: invoicing (admin only; created by v8). Reads are plain SELECTs (RLS); every write goes through a server function. ── */
+  async fetchInvoiceBundle() {
+    this._need();
+    const inv = await sb.from("invoice_overview").select("*").order("issue_date", { ascending: false }).order("created_at", { ascending: false });
+    if (inv.error && isMissingSchema(inv.error)) return null;
+    this._check(inv.error);
+    const [pay, cust, set] = await Promise.all([
+      sb.from("invoice_payments").select("*").order("paid_on", { ascending: false }).order("recorded_at", { ascending: false }),
+      sb.from("customers").select("*").order("name", { ascending: true }),
+      sb.from("invoice_settings").select("data").eq("id", 1).maybeSingle()
+    ]);
+    this._check(pay.error); this._check(cust.error); this._check(set.error);
+    return { invoices: inv.data, payments: pay.data, customers: cust.data, settings: (set.data && set.data.data) || {} };
+  },
+  async fetchInvoiceItems(invoiceId) {
+    this._need();
+    const { data, error } = await sb.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("position", { ascending: true });
+    this._check(error);
+    return data;
+  },
+  async fetchInvoiceEvents(invoiceId) {
+    this._need();
+    const { data, error } = await sb.from("invoice_events").select("*").eq("invoice_id", invoiceId).order("at", { ascending: true });
+    this._check(error);
+    return data;
+  },
+  async _inv(fn, args) {
+    this._need();
+    const { data, error } = await sb.rpc(fn, args);
+    this._check(error);
+    return data;
+  },
+  saveInvoiceSettings(data) { return this._inv("invoice_settings_save", { p: data }); },
+  saveCustomer(data) { return this._inv("customer_save", { p: data }); },
+  setCustomerArchived(id, archived) { return this._inv("customer_set_archived", { p_id: id, p_archived: archived }); },
+  saveInvoiceDraft(invoice, items) { return this._inv("invoice_save_draft", { p_invoice: invoice, p_items: items }); },
+  deleteInvoiceDraft(id) { return this._inv("invoice_delete_draft", { p_id: id }); },
+  issueInvoice(id) { return this._inv("invoice_issue", { p_id: id }); },
+  cancelInvoice(id, reason) { return this._inv("invoice_cancel", { p_id: id, p_reason: reason }); },
+  recordInvoicePayment(p) { return this._inv("invoice_record_payment", { p_invoice: p.invoice_id, p_paid_on: p.paid_on, p_amount: p.amount, p_method: p.method, p_reference: p.reference || "", p_note: p.note || "", p_token: p.token }); },
+  reverseInvoicePayment(id, reason) { return this._inv("invoice_reverse_payment", { p_payment: id, p_reason: reason }); },
+
   async upsertSetting(key, value) {
     this._need();
     const { data, error } = await sb.from("website_settings").upsert({ key, value }).select();

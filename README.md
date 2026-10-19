@@ -73,3 +73,8 @@ Palette is derived from the supplied logo: slate `#18252d` (logo background), `#
 ## Before launch
 
 The privacy, terms and delivery/returns pages are practical drafts based on how the site works. Have them reviewed (and add your company registration details) before publishing.
+
+
+## Invoices / Faturat
+
+Built-in invoicing in the admin panel (branch `dev/platform`, not deployed): see [docs/INVOICING.md](docs/INVOICING.md).

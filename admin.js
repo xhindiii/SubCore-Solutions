@@ -11,6 +11,7 @@
     ["dashboard", "Dashboard", "dashboard"],
     ["products", "Products", "package"],
     ["orders", "Orders", "cart"],
+    ["invoices", "Invoices / Faturat", "receipt"],
     ["inquiries", "Enquiries", "inbox"],
     ["categories", "Categories", "grid"],
     ["services", "Services", "support"],
@@ -172,6 +173,7 @@
     if (isAdmin()) S.notifications = await safe(SupabaseClient.fetchNotifications(200), null);
     S.promoTemplates = can("promo") ? await safe(SupabaseClient.fetchPromoTemplates(), null) : null;
     S.purchases = isAdmin() ? await safe(SupabaseClient.fetchPurchases(), null) : null;
+    S.inv = isAdmin() ? await safe(SupabaseClient.fetchInvoiceBundle(), null) : null;   // null = invoicing migration (v8) not installed
   }
 
   async function reload(what) {
@@ -187,6 +189,7 @@
       if (what === "notifications") S.notifications = await SupabaseClient.fetchNotifications(200);
       if (what === "promoTemplates") S.promoTemplates = await SupabaseClient.fetchPromoTemplates();
       if (what === "purchases") S.purchases = await SupabaseClient.fetchPurchases();
+      if (what === "invoices") S.inv = await SupabaseClient.fetchInvoiceBundle();
     } catch (e) { fail(e, "Could not refresh data"); }
   }
 
@@ -212,6 +215,7 @@
     if (S.inquiries === null && can("inquiries")) msgs.push("Enquiries are not being stored yet — the same migration creates that table.");
     if (isAdmin() && S.audit === null) msgs.push("Roles, the activity log and team management are not installed yet. Run <strong>supabase-migration-v4-security.sql</strong> in the Supabase SQL editor.");
     if (isAdmin() && S.notifications === null) msgs.push("Order e-mail notifications are not set up yet. Run <strong>supabase-migration-v5-notifications.sql</strong> in the Supabase SQL editor, then follow <strong>NOTIFICATIONS.md</strong>.");
+    if (isAdmin() && S.inv === null) msgs.push("Invoicing is not installed yet. Run <strong>supabase-migration-v8-invoicing.sql</strong> in the Supabase SQL editor (staging first), then see <strong>docs/INVOICING.md</strong>.");
     if (isAdmin() && failedNotifications() > 0) msgs.push("<strong>" + failedNotifications() + " order notification" + (failedNotifications() === 1 ? "" : "s") + " could not be e-mailed.</strong> <a href=\"#notifications\">Open Notifications</a> to retry.");
     n.hidden = !msgs.length;
     n.innerHTML = msgs.join("<br>");
@@ -224,6 +228,7 @@
     if (parts.length > 1) { try { arg = decodeURIComponent(parts.slice(1).join("/")); } catch { arg = ""; } }
     if (!SECTIONS.some((s) => s[0] === section) || !can(section)) { section = "dashboard"; arg = ""; }
     S.section = section;
+    S.invArg = section === "invoices" ? arg : "";   // "new" | "order:<id>" | "edit:<id>" | "view:<id>" — consumed by admin-invoices.js
     if (location.hash !== "#" + section) history.replaceState(null, "", "#" + section);
     render();
     window.scrollTo(0, 0);
@@ -245,7 +250,7 @@
     const actions = $("#page-actions");
     actions.innerHTML = "";
     const view = $("#view");
-    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, portfolio: viewPortfolio, team: viewTeam, activity: viewActivity, notifications: viewNotifications, promo: viewExt, reports: viewExt, settings: viewSettings })[S.section](view, actions);
+    ({ dashboard: viewDashboard, products: viewProducts, orders: viewOrders, inquiries: viewInquiries, categories: viewCategories, services: viewServices, portfolio: viewPortfolio, team: viewTeam, activity: viewActivity, notifications: viewNotifications, promo: viewExt, reports: viewExt, invoices: viewExt, settings: viewSettings })[S.section](view, actions);
   }
 
   /* Promo graphics and Reports live in their own files (admin-promo.js, admin-reports.js) and register in window.AdminViews.
@@ -827,6 +832,10 @@
     const o = S.orders.find((x) => String(x.id) === String(id));
     if (!o) return;
     const wa = waLink(o.customer_phone);
+    const orderInv = isAdmin() && S.inv ? S.inv.invoices.find((i) => String(i.order_id) === String(o.id) && i.status !== "cancelled") : null;
+    const invBtn = !isAdmin() || !S.inv ? "" : orderInv
+      ? '<button type="button" class="button button-outline" id="o-inv-open">Open invoice ' + esc(orderInv.number || "(draft)") + "</button>"
+      : '<button type="button" class="button button-outline" id="o-inv-new">Create invoice</button>';
     const lines = o.items.map((i) => '<tr><td>' + esc(nm(i.name) || i.id) + (i.sku ? '<br><small class="muted">' + esc(i.sku) + "</small>" : "") + '</td><td class="num">' + (i.qty || 0) + ' × ' + money(i.price || 0, i.currency) + '</td><td class="num">' + money((i.price || 0) * (i.qty || 0), i.currency) + "</td></tr>").join("");
     const dr = drawer("Order " + (o.order_number || "#" + o.id),
       '<dl class="kv"><dt>Placed</dt><dd>' + esc(fmtDate(o.created_at)) + "</dd><dt>Customer</dt><dd>" + esc(o.customer_name) + '</dd><dt>Phone</dt><dd><a href="tel:' + esc(o.customer_phone) + '">' + esc(o.customer_phone) + "</a></dd>" +
@@ -835,14 +844,20 @@
       '<table class="items-table"><thead><tr><th>Item</th><th class="num">Qty × price</th><th class="num">Total</th></tr></thead><tbody>' + lines + "</tbody><tfoot>" +
       (o.shipping ? '<tr><td colspan="2">Delivery</td><td class="num">' + money(o.shipping) + "</td></tr>" : "") + '<tr><td colspan="2"><strong>Total</strong></td><td class="num"><strong>' + money(o.total) + "</strong></td></tr></tfoot></table>" +
       '<div class="form-group" style="margin-top:1.25rem"><label for="o-status">Status</label><select id="o-status">' + ORDER_STATUS.map((s) => '<option value="' + s[0] + '"' + (o.status === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + '</select><div class="help">Cancelling an order puts its items back in stock.</div></div>',
-      (isAdmin() ? '<button type="button" class="button button-outline button-danger" id="o-del" style="margin-right:auto;background:#fff;color:#b42318"' + (o.status === "cancelled" ? "" : ' title="Cancel the order first"') + ">Delete</button>" : "") + '<a class="button button-outline" href="tel:' + esc(o.customer_phone) + '">Call</a><a class="button button-outline" target="_blank" rel="noopener" href="' + esc(wa) + '">WhatsApp</a><button type="button" class="button" id="o-save">Update status</button>');
+      (isAdmin() ? '<button type="button" class="button button-outline button-danger" id="o-del" style="margin-right:auto;background:#fff;color:#b42318"' + (o.status === "cancelled" ? "" : ' title="Cancel the order first"') + ">Delete</button>" : "") + '<a class="button button-outline" href="tel:' + esc(o.customer_phone) + '">Call</a><a class="button button-outline" target="_blank" rel="noopener" href="' + esc(wa) + '">WhatsApp</a>' + invBtn + '<button type="button" class="button" id="o-save">Update status</button>');
+    const goInv = (arg) => { dr.close(); go("invoices/" + arg); };
+    const nb = $("#o-inv-new", dr.el); if (nb) nb.addEventListener("click", () => goInv("order:" + o.id));
+    const ob = $("#o-inv-open", dr.el); if (ob) ob.addEventListener("click", () => goInv("view:" + orderInv.id));
     const delBtn = $("#o-del", dr.el);
     if (delBtn) delBtn.addEventListener("click", async () => {
       // Only cancelled orders can be deleted: cancelling is what puts the items back in stock, so nothing is left half-counted.
       if (o.status !== "cancelled") { toast("error", "Cancel this order first (set the status to Cancelled and press Update status). Then you can delete it."); return; }
       if (!(await confirmBox("Delete this order permanently?", "Order " + (o.order_number || "#" + o.id) + " (" + o.customer_name + ") will be erased for good and will no longer appear in reports. This cannot be undone.", "Delete order", true))) return;
       try { await SupabaseClient.deleteOrder(o.id); ok("Order deleted"); dr.close(); await reload("orders"); render(); }
-      catch (e) { fail(e, "Could not delete the order"); }
+      catch (e) {
+        if (e && (e.code === "23503" || /invoices?_order|foreign key/i.test(e.message || ""))) toast("error", "This order has an invoice, so it cannot be deleted. Cancel the invoice first only if it was issued by mistake — invoices are kept for your records.");
+        else fail(e, "Could not delete the order");
+      }
     });
     $("#o-save", dr.el).addEventListener("click", async (ev) => {
       const status = $("#o-status", dr.el).value;

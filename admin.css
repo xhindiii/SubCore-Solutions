@@ -247,3 +247,9 @@ td .switch { vertical-align: middle; }
   details.rp-ex { display: block; } details.rp-ex:not([open]) > ul { display: none; }
   .rp-act { display: none; }
 }
+
+/* Invoices / Faturat (admin-invoices.js) */
+.rp .cols > * { min-width: 0; }
+.rp .table-wrap { overflow-x: auto; }
+.rp .items-table input, .rp table.data input, .rp table.data select { padding: 0.35rem 0.45rem; border: 1px solid var(--c-line); border-radius: 6px; font: inherit; min-width: 0; }
+.rp .card-body h3 { margin: 1.1rem 0 0.4rem; font-size: 1rem; }

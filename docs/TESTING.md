@@ -46,3 +46,17 @@ for f in tests/portfolio/admin.e2e.mjs tests/portfolio/public.e2e.mjs tests/prom
 git worktree add /tmp/base baseline-2026-10-18 && node tests/regression/baseline-compare.mjs /tmp/base .
 node tests/regression/catalogue-sync/run.mjs tests/regression/catalogue-sync/export-logic.copy.js
 ```
+
+
+## Invoicing (Invoices / Faturat)
+
+Added with `docs/INVOICING.md`. Commands (throwaway local PostgreSQL; never your real Supabase):
+
+```
+bash tests/invoicing/run-db-tests.sh          # 116 database checks
+bash tests/invoicing/concurrency.sh 20        # simultaneous issuing: unique, gap-free numbers
+node tests/invoicing/parity.mjs               # 3,000 random invoices: JS maths == SQL maths
+node --test tests/invoicing/core.test.mjs     # JS unit tests
+NODE_PATH=/opt/npm-tools/node_modules PW_PATH=/opt/npm-tools/node_modules/playwright node tests/invoicing/e2e.mjs   # 18 browser checks against the real SQL
+bash tests/security/run.sh                    # authorization matrix (now includes v8)
+```

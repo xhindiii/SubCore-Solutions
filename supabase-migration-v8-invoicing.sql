@@ -761,7 +761,7 @@ DO $$
 DECLARE f TEXT;
 BEGIN
   FOREACH f IN ARRAY ARRAY[
-    'inv_require_admin()', 'inv_event(uuid,text,jsonb)', 'inv_via_rpc()', 'invoices_guard()', 'invoice_items_guard()', 'invoice_payments_guard()', 'invoice_events_guard()'] LOOP
+    'inv_require_admin()', 'inv_event(uuid,text,jsonb)', 'inv_via_rpc()', 'inv_name(jsonb,text,text)', 'inv_num(text,text,numeric,numeric,numeric)', 'inv_text(text,integer,text,boolean)', 'invoices_guard()', 'invoice_items_guard()', 'invoice_payments_guard()', 'invoice_events_guard()'] LOOP
     EXECUTE format('REVOKE ALL ON FUNCTION public.%s FROM PUBLIC, anon, authenticated', f);
   END LOOP;
   FOREACH f IN ARRAY ARRAY[
